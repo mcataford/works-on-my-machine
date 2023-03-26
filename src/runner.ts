@@ -27,7 +27,9 @@ async function collectTests(root: string): Promise<Array<string>> {
 	} else if (rootStats.isDirectory()) {
 		const content = await fs.readdir(root, { encoding: 'utf8' })
 
-		const segmentedCollectedPaths = await Promise.all(content.map((item: string) => collectTests(path.join(root, item))))
+		const segmentedCollectedPaths = await Promise.all(
+			content.map((item: string) => collectTests(path.join(root, item))),
+		)
 		const collectedPaths = segmentedCollectedPaths.reduce((acc: Array<string>, collectedSegment: Array<string>) => {
 			acc.push(...collectedSegment)
 			return acc
