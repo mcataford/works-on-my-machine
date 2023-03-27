@@ -48,7 +48,6 @@ jobs:
         yarn
         yarn lint
   test:
-    if: ${{ false }}
     runs-on: ubuntu-latest
     needs: dependencies
 
@@ -74,7 +73,6 @@ jobs:
         yarn test
   
   build:
-    if: ${{ false }}
     runs-on: ubuntu-latest
     needs: dependencies
     strategy:
