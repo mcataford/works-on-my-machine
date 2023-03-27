@@ -16,7 +16,7 @@ class Expectation<ValueType> {
 	}
 
 	toEqual(value: ValueType) {
-        assert.deepEqual(this.value, value, new TestAssertionFailed(`NotEqual! ${this.value} != ${value}`))
+		assert.deepEqual(this.value, value, new TestAssertionFailed(`NotEqual! ${this.value} != ${value}`))
 	}
 
 	toBe(value: ValueType) {
