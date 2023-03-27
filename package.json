@@ -5,7 +5,7 @@
   "license": "MIT",
   "packageManager": "yarn@3.4.1",
   "bin": {
-      "womm": "./dist/runner.js"
+    "womm": "./dist/runner.js"
   },
   "scripts": {
     "lint": "rome check src tests && rome format src tests",
