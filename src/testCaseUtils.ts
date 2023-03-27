@@ -1,10 +1,10 @@
 import Context from './context'
 
 class TestAssertionFailed extends Error {
-    constructor(message: string) {
-        super(message)
-        this.name = 'TestAssertionFailed'
-    }
+	constructor(message: string) {
+		super(message)
+		this.name = 'TestAssertionFailed'
+	}
 }
 
 function test(label: string, testCase: any) {
@@ -14,8 +14,8 @@ function test(label: string, testCase: any) {
 	const stack = new Error().stack?.slice(1)
 	Error.prepareStackTrace = _prepareStackTrace
 
-	const testCaseLocation = String(stack && stack[0]).match(/\(.*\)/)
-    const testCaseLoc = testCaseLocation && testCaseLocation[0]
+	const testCaseLocation = String(stack?.[0]).match(/\(.*\)/)
+	const testCaseLoc = testCaseLocation?.[0]
 
 	Context.collectedTests.set(`${testCaseLoc}:${label}`, testCase)
 }
@@ -28,14 +28,14 @@ class Expectation<ValueType> {
 	}
 
 	toEqual(value: ValueType) {
-        const isPrimitive = ['boolean', 'number'].includes(typeof(value))
-        const isString = !isPrimitive && typeof(value) === 'string'
+		const isPrimitive = ['boolean', 'number'].includes(typeof value)
+		const isString = !isPrimitive && typeof value === 'string'
 
 		if ((isPrimitive || isString) && this.value === value) {
 			return
 		}
 
-        throw new TestAssertionFailed('NotEqual!')
+		throw new TestAssertionFailed('NotEqual!')
 	}
 }
 
