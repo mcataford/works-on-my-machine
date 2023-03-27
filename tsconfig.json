@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "target": "es2015",
+        "module": "commonjs", 
+        "allowJs": false,
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true, 
+        "outDir": "./dist",
+        "rootDir": "./",
+        "removeComments": true,
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true, 
+        "forceConsistentCasingInFileNames": true
+    },
+    "include": ["src"],
+    "exclude": [
+        "dist/**/*",
+        "tests/**/*"
+    ]
+}
