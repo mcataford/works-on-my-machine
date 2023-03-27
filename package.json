@@ -1,0 +1,22 @@
+{
+  "name": "testrunner",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "packageManager": "yarn@3.4.1",
+  "bin": {
+    "womm": "./dist/runner.js"
+  },
+  "scripts": {
+    "lint": "rome check src tests && rome format src tests",
+    "lint:fix": "rome check src tests --apply && rome format src tests --write",
+    "test": "ts-node ./src/runner.ts ./tests",
+    "build": "tsc --project ."
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.10",
+    "rome": "^11.0.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.0.0"
+  }
+}
