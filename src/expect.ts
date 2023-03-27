@@ -1,3 +1,5 @@
+import assert from 'assert'
+
 class TestAssertionFailed extends Error {
 	constructor(message: string) {
 		super(message)
@@ -5,6 +7,7 @@ class TestAssertionFailed extends Error {
 	}
 }
 
+// TODO(mcat): This should just be using `assert`
 class Expectation<ValueType> {
 	value: ValueType
 
@@ -13,19 +16,11 @@ class Expectation<ValueType> {
 	}
 
 	toEqual(value: ValueType) {
-		const isPrimitive = ['boolean', 'number'].includes(typeof value)
-		const isString = !isPrimitive && typeof value === 'string'
-
-		if ((isPrimitive || isString) && this.value === value) {
-			return
-		}
-
-		throw new TestAssertionFailed(`NotEqual! ${this.value} != ${value}`)
+        assert.deepEqual(this.value, value, new TestAssertionFailed(`NotEqual! ${this.value} != ${value}`))
 	}
 
 	toBe(value: ValueType) {
 		if (Object.is(this.value, value)) return
-
 		throw new TestAssertionFailed(`NotEqual! ${this.value} !== ${value}`)
 	}
 }
