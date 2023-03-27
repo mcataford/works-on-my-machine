@@ -1,27 +1,45 @@
 import Context from './context'
 
-function test(label: string, testCase: any) {
-	if (Context.collecting) {
-		Context.collectedTests.set(label, testCase)
-	}
+class TestAssertionFailed extends Error {
+    constructor(message: string) {
+        super(message)
+        this.name = 'TestAssertionFailed'
+    }
 }
 
-class Expectation {
-	value: string
+function test(label: string, testCase: any) {
+	// Hack to get the file that contains the test definition.
+	const _prepareStackTrace = Error.prepareStackTrace
+	Error.prepareStackTrace = (_, stack) => stack
+	const stack = new Error().stack?.slice(1)
+	Error.prepareStackTrace = _prepareStackTrace
 
-	constructor(value: string) {
+	const testCaseLocation = String(stack && stack[0]).match(/\(.*\)/)
+    const testCaseLoc = testCaseLocation && testCaseLocation[0]
+
+	Context.collectedTests.set(`${testCaseLoc}:${label}`, testCase)
+}
+
+class Expectation<ValueType> {
+	value: ValueType
+
+	constructor(value: ValueType) {
 		this.value = value
 	}
 
-	toEqual(value: string) {
-		if (this.value !== value) {
-			throw Error('NOT EQUAL')
+	toEqual(value: ValueType) {
+        const isPrimitive = ['boolean', 'number'].includes(typeof(value))
+        const isString = !isPrimitive && typeof(value) === 'string'
+
+		if ((isPrimitive || isString) && this.value === value) {
+			return
 		}
+
+        throw new TestAssertionFailed('NotEqual!')
 	}
 }
 
-// FIXME: Unknown type, in principle.
-function expect(value: string) {
+function expect<ValueType>(value: ValueType) {
 	return new Expectation(value)
 }
 

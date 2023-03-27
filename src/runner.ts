@@ -81,7 +81,6 @@ async function runTests(collectedPaths: Array<string>) {
 	console.group('Test run')
 	const collectionRoot = process.argv[2]
 	const collectedTests = await collectTests(collectionRoot)
-
 	runTests(collectedTests)
 	console.groupEnd()
 })().catch((e) => {
