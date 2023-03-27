@@ -9,7 +9,7 @@ function test(label: string, testCase: any) {
 	const stack = new Error().stack?.slice(1)
 	Error.prepareStackTrace = _prepareStackTrace
 
-	const testCaseLocation = stack?.[0] ?? 'unknown'
+	const testCaseLocation = String(stack?.[0])?.match(/\(.*\)/)?.[0] ?? 'unknown'
 	Context.collectedTests.set(`${testCaseLocation}:${label}`, testCase)
 }
 
