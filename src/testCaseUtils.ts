@@ -1,11 +1,6 @@
 import Context from './context'
 
-class TestAssertionFailed extends Error {
-	constructor(message: string) {
-		super(message)
-		this.name = 'TestAssertionFailed'
-	}
-}
+import expect from './expect'
 
 function test(label: string, testCase: any) {
 	// Hack to get the file that contains the test definition.
@@ -14,33 +9,10 @@ function test(label: string, testCase: any) {
 	const stack = new Error().stack?.slice(1)
 	Error.prepareStackTrace = _prepareStackTrace
 
-	const testCaseLocation = String(stack?.[0]).match(/\(.*\)/)
-	const testCaseLoc = testCaseLocation?.[0]
-
-	Context.collectedTests.set(`${testCaseLoc}:${label}`, testCase)
+	const testCaseLocation = stack?.[0] ?? 'unknown'
+	Context.collectedTests.set(`${testCaseLocation}:${label}`, testCase)
 }
 
-class Expectation<ValueType> {
-	value: ValueType
+const it = test
 
-	constructor(value: ValueType) {
-		this.value = value
-	}
-
-	toEqual(value: ValueType) {
-		const isPrimitive = ['boolean', 'number'].includes(typeof value)
-		const isString = !isPrimitive && typeof value === 'string'
-
-		if ((isPrimitive || isString) && this.value === value) {
-			return
-		}
-
-		throw new TestAssertionFailed('NotEqual!')
-	}
-}
-
-function expect<ValueType>(value: ValueType) {
-	return new Expectation(value)
-}
-
-export { test, expect }
+export { it, test, expect }

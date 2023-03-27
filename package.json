@@ -4,6 +4,9 @@
   "main": "index.js",
   "license": "MIT",
   "packageManager": "yarn@3.4.1",
+  "bin": {
+      "womm": "./dist/runner.js"
+  },
   "scripts": {
     "lint": "rome check src tests && rome format src tests",
     "lint:fix": "rome check src tests --apply && rome format src tests --write",
