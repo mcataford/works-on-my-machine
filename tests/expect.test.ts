@@ -1,73 +1,66 @@
+import assert from 'assert'
 import { test, expect } from '../src/testCaseUtils'
 
 test('Equality (number)', () => {
-	expect(1).toEqual(1)
+	assert.doesNotThrow(() => expect(1).toEqual(1))
 })
 
 test('Equality (string)', () => {
-	expect('expectations').toEqual('expectations')
+	assert.doesNotThrow(() => expect('expectations').toEqual('expectations'))
 })
 
 test('Equality (boolean)', () => {
-	expect(true).toEqual(true)
+	assert.doesNotThrow(() => expect(true).toEqual(true))
 })
 
 test('Equality (failed - number)', () => {
-	try {
-		expect(1).toEqual(2)
-	} catch (e) {
-		expect(1).toEqual(1)
-	}
+	assert.throws(() => expect(1).toEqual(2))
 })
 
 test('Equality (failed - string)', () => {
-	try {
-		expect('expectation').toEqual('something else')
-	} catch (e) {
-		expect(1).toEqual(1)
-	}
+	assert.throws(() => expect('expectation').toEqual('something else'))
 })
 
 test('Equality (failed - boolean)', () => {
-	try {
-		expect(true).toEqual(false)
-	} catch (e) {
-		expect(1).toEqual(1)
-	}
+	assert.throws(() => expect(true).toEqual(false))
 })
 
 test('Identity comparison (number)', () => {
-	expect(1).toBe(1)
+	assert.doesNotThrow(() => expect(1).toBe(1))
 })
 
 test('Identity comparison (boolean)', () => {
-	expect(true).toBe(true)
+	assert.doesNotThrow(() => expect(true).toBe(true))
 })
 
 test('Identity comparison (string)', () => {
-	expect('identity').toBe('identity')
+	assert.doesNotThrow(() => expect('identity').toBe('identity'))
 })
 
 test('Identity comparison (failed - number)', () => {
-	try {
-		expect(1).toEqual(2)
-	} catch (e) {
-		expect(1).toEqual(1)
-	}
+	assert.throws(() => expect(1).toEqual(2))
 })
 
 test('Identity comparison (failed - boolean)', () => {
-	try {
-		expect(false).toBe(true)
-	} catch (e) {
-		expect(1).toEqual(1)
-	}
+	assert.throws(() => expect(false).toBe(true))
 })
 
 test('Identity comparison (failed - string)', () => {
-	try {
-		expect('yes').toBe('no')
-	} catch (e) {
-		expect(1).toEqual(1)
-	}
+	assert.throws(() => expect('yes').toBe('no'))
+})
+
+test('Equality negation', () => {
+	assert.doesNotThrow(() => expect('yes').not.toEqual('no'))
+})
+
+test('Stacked equality negation', () => {
+	assert.doesNotThrow(() => expect('yes').not.not.toEqual('yes'))
+})
+
+test('Identity negation', () => {
+	assert.doesNotThrow(() => expect('yes').not.toBe('no'))
+})
+
+test('Identity negation (fail)', () => {
+	assert.throws(() => expect('yes').not.toBe('yes'))
 })
