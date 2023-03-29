@@ -6,7 +6,6 @@ function getContext(): IContext {
 	if (!runnerContext) {
 		runnerContext = {
 			collectedTests: new Map<TestFilePath, any>(),
-			collecting: true,
 		}
 	}
 
