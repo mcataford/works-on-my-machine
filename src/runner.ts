@@ -1,6 +1,7 @@
 import Context from './context'
-import { greenText, redText, exec, generateCachedCollectedPathFromActual } from './utils'
+import { greenText, redText, exec, generateCachedCollectedPathFromActual, createMarkIfNotExist } from './utils'
 
+import { performance } from 'perf_hooks'
 import { promises as fs, type Dirent, type PathLike } from 'fs'
 import path from 'path'
 
@@ -9,6 +10,7 @@ import path from 'path'
  * path.
  */
 async function collectTests(root: string): Promise<Array<string>> {
+	createMarkIfNotExist('collect-tests:start')
 	const collectedHere = []
 
 	const rootStats = await fs.stat(root)
@@ -53,7 +55,14 @@ async function collectCases(collectedPaths: Array<string>) {
 		collectedCount += collectedCases.split('\n').length
 	}
 
-	console.log(greenText(`Collected ${collectedCount} cases`))
+	createMarkIfNotExist('collect-tests:end')
+	console.log(
+		greenText(
+			`Collected ${collectedCount} cases from ${collectedPaths.length} test files in ${
+				performance.measure('collect-tests:start', 'collect-tests:end').duration
+			} ms`,
+		),
+	)
 } /*
  * Logic executed when running the test runner CLI.
  */
@@ -63,7 +72,7 @@ async function collectCases(collectedPaths: Array<string>) {
 		await fs.mkdir('.womm-cache')
 
 		const collectedTests = await collectTests(collectionRoot)
-
+		//console.log(greenText(`Collected ${collectedTests.length} tests in ${performance.measure("collect-tests:start", "collect-tests:end").duration} ms`))
 		await collectCases(collectedTests)
 		await runTests(collectedTests)
 	} catch (e) {

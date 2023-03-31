@@ -3,7 +3,7 @@ import Context from './context'
 import { promises as fs } from 'fs'
 
 import expect from './expect'
-import { greenText, redText, generateCachedCollectedPathFromActual } from './utils'
+import { greenText, redText, generateCachedCollectedPathFromActual, createMarkIfNotExist } from './utils'
 import { type TestCaseLabel, type TestCaseFunction, type TestCaseGroup } from './types'
 
 function describe(label: TestCaseLabel, testGroup: TestCaseGroup) {
@@ -18,6 +18,7 @@ function describe(label: TestCaseLabel, testGroup: TestCaseGroup) {
 }
 
 function test(label: TestCaseLabel, testCase: TestCaseFunction): void {
+	createMarkIfNotExist(`test-${label}:start`)
 	if (process.env.COLLECT) {
 		fs.appendFile(`.womm-cache/${generateCachedCollectedPathFromActual(process.argv[1])}`, `${label}\n`)
 		return
@@ -25,7 +26,10 @@ function test(label: TestCaseLabel, testCase: TestCaseFunction): void {
 
 	try {
 		testCase()
-		console.log(greenText(`[PASSED] ${label}`))
+		createMarkIfNotExist(`test-${label}:end`)
+		console.log(
+			greenText(`[PASSED] ${label} (${performance.measure(`test-${label}:start`, `test-${label}:end`).duration} ms)`),
+		)
 	} catch (e) {
 		console.group(redText(`[FAILED] ${label}`))
 		console.log(redText(String(e)))

@@ -14,3 +14,11 @@ export function greenText(text: string): string {
 export function redText(text: string): string {
 	return `\x1b[31m${text}\x1b[0m`
 }
+
+export function createMarkIfNotExist(label: string) {
+	const existingMarks = performance.getEntriesByName(label)
+
+	if (existingMarks.length !== 0) return
+
+	performance.mark(label)
+}
