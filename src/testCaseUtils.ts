@@ -1,18 +1,38 @@
 import Context from './context'
 
+import { promises as fs } from 'fs'
+
 import expect from './expect'
+import { greenText, redText, generateCachedCollectedPathFromActual } from './utils'
+import { type TestCaseLabel, type TestCaseFunction, type TestCaseGroup } from './types'
 
-function test(label: string, testCase: any) {
-	// Hack to get the file that contains the test definition.
-	const _prepareStackTrace = Error.prepareStackTrace
-	Error.prepareStackTrace = (_, stack) => stack
-	const stack = new Error().stack?.slice(1)
-	Error.prepareStackTrace = _prepareStackTrace
+function describe(label: TestCaseLabel, testGroup: TestCaseGroup) {
+	if (process.env.COLLECT) {
+		testGroup()
+		return
+	}
 
-	const testCaseLocation = String(stack?.[0])?.match(/\(.*\)/)?.[0] ?? 'unknown'
-	Context.collectedTests.set(`${testCaseLocation}:${label}`, testCase)
+	console.group(greenText(label))
+	testGroup()
+	console.groupEnd()
+}
+
+function test(label: TestCaseLabel, testCase: TestCaseFunction): void {
+	if (process.env.COLLECT) {
+		fs.appendFile(`.womm-cache/${generateCachedCollectedPathFromActual(process.argv[1])}`, `${label}\n`)
+		return
+	}
+
+	try {
+		testCase()
+		console.log(greenText(`[PASSED] ${label}`))
+	} catch (e) {
+		console.group(redText(`[FAILED] ${label}`))
+		console.log(redText(String(e)))
+		console.groupEnd()
+	}
 }
 
 const it = test
 
-export { it, test, expect }
+export { it, test, expect, describe }
