@@ -4,11 +4,9 @@ import { promises as fs } from 'fs'
 
 import expect from './expect'
 import { greenText, redText, generateCachedCollectedPathFromActual } from './utils'
+import { type TestCaseLabel, type TestCaseFunction, type TestCaseGroup } from './types'
 
-type TestCaseFunction = () => void
-type TestCaseGroup = () => void
-
-function describe(label: string, testGroup: TestCaseGroup) {
+function describe(label: TestCaseLabel, testGroup: TestCaseGroup) {
 	if (process.env.COLLECT) {
 		testGroup()
 		return
@@ -19,7 +17,7 @@ function describe(label: string, testGroup: TestCaseGroup) {
 	console.groupEnd()
 }
 
-function test(label: string, testCase: TestCaseFunction): void {
+function test(label: TestCaseLabel, testCase: TestCaseFunction): void {
 	if (process.env.COLLECT) {
 		fs.appendFile(`.womm-cache/${generateCachedCollectedPathFromActual(process.argv[1])}`, `${label}\n`)
 		return

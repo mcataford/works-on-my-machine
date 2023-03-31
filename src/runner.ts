@@ -44,6 +44,7 @@ async function collectCases(collectedPaths: Array<string>) {
 	let collectedCount = 0
 
 	for await (const collectedPath of collectedPaths) {
+		// FIXME: This should just use `node` and transform if TS is present instead.
 		const result = await exec(`COLLECT=1 ts-node ${collectedPath}`, {})
 		const collectedCases = await fs.readFile(
 			`.womm-cache/${generateCachedCollectedPathFromActual(path.resolve(collectedPath))}`,
@@ -58,15 +59,20 @@ async function collectCases(collectedPaths: Array<string>) {
  */
 ;(async () => {
 	const [, , collectionRoot, ...omit] = process.argv
+	try {
+		await fs.mkdir('.womm-cache')
 
-	await fs.mkdir('.womm-cache')
+		const collectedTests = await collectTests(collectionRoot)
 
-	const collectedTests = await collectTests(collectionRoot)
-
-	await collectCases(collectedTests)
-	await runTests(collectedTests)
-
-	await fs.rm('.womm-cache', { force: true, recursive: true })
+		await collectCases(collectedTests)
+		await runTests(collectedTests)
+	} catch (e) {
+		console.group(redText('Test run failed'))
+		console.log(redText(String(e)))
+		console.groupEnd()
+	} finally {
+		await fs.rm('.womm-cache', { force: true, recursive: true })
+	}
 })().catch((e) => {
 	throw e
 })
