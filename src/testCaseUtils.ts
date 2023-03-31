@@ -3,7 +3,7 @@ import Context from './context'
 import { promises as fs } from 'fs'
 
 import expect from './expect'
-import { greenText, redText } from './utils'
+import { greenText, redText, generateCachedCollectedPathFromActual } from './utils'
 
 type TestCaseFunction = () => void
 type TestCaseGroup = () => void
@@ -21,7 +21,7 @@ function describe(label: string, testGroup: TestCaseGroup) {
 
 function test(label: string, testCase: TestCaseFunction): void {
 	if (process.env.COLLECT) {
-		fs.appendFile(`.womm-cache/${process.argv[1].replace(/[\/.]/g, '_')}`, `${label}\n`)
+		fs.appendFile(`.womm-cache/${generateCachedCollectedPathFromActual(process.argv[1])}`, `${label}\n`)
 		return
 	}
 

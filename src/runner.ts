@@ -1,5 +1,5 @@
 import Context from './context'
-import { greenText, redText, exec } from './utils'
+import { greenText, redText, exec, generateCachedCollectedPathFromActual } from './utils'
 
 import { promises as fs, type Dirent, type PathLike } from 'fs'
 import path from 'path'
@@ -41,9 +41,18 @@ async function runTests(collectedPaths: Array<string>) {
 }
 
 async function collectCases(collectedPaths: Array<string>) {
+	let collectedCount = 0
+
 	for await (const collectedPath of collectedPaths) {
 		const result = await exec(`COLLECT=1 ts-node ${collectedPath}`, {})
+		const collectedCases = await fs.readFile(
+			`.womm-cache/${generateCachedCollectedPathFromActual(path.resolve(collectedPath))}`,
+			{ encoding: 'utf8' },
+		)
+		collectedCount += collectedCases.split('\n').length
 	}
+
+	console.log(greenText(`Collected ${collectedCount} cases`))
 } /*
  * Logic executed when running the test runner CLI.
  */
