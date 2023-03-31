@@ -3,7 +3,7 @@ import { describe, test, expect } from '../src/testCaseUtils'
 
 describe('Equality', () => {
 	test('Equality (number)', () => {
-		assert.throws(() => expect(1).toEqual(1))
+		assert.doesNotThrow(() => expect(1).toEqual(1))
 	})
 
 	test('Equality (string)', () => {
