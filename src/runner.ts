@@ -93,7 +93,6 @@ function setUpSocket(socketPath: string): TestServer {
 	let server
 
 	try {
-		await fs.mkdir('.womm-cache')
 		server = setUpSocket(context.runnerSocket)
 		const collectedTests = await collectTests(collectionRoot)
 		await collectCases(context, collectedTests)
@@ -106,7 +105,6 @@ function setUpSocket(socketPath: string): TestServer {
 		console.groupEnd()
 	} finally {
 		server?.close()
-		await fs.rm('.womm-cache', { force: true, recursive: true })
 	}
 })().catch((e) => {
 	throw e
