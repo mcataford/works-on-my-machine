@@ -85,7 +85,10 @@ function setUpSocket(socketPath: string): net.Server {
 		console.log('Worker connected')
 
 		s.on('data', (d) => {
-			console.log(d.toString('utf8'))
+			const workerReport: any = JSON.parse(d.toString('utf8'))
+			console.log(workerReport.results)
+
+			if (workerReport.failed) throw Error('NONO')
 		})
 	})
 

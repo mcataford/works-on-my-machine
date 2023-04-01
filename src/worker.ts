@@ -2,6 +2,11 @@ import net from 'net'
 
 import { getContext, exec } from './utils'
 
+// TODO: What should be message protocol / format be?
+function formatMessage(results: string, failed: boolean): string {
+	return JSON.stringify({ results, failed })
+}
+
 /*
  * Worker runtime
  *
@@ -19,8 +24,7 @@ async function work() {
 	const socketConnection = net.createConnection(context.runnerSocket, async () => {
 		for await (const testFilePath of assignedTestFiles) {
 			const result = await exec(`${context.nodeRuntime} ${testFilePath}`, {})
-			// TODO: Define IPC protocol
-			socketConnection.write(result.stdout)
+			socketConnection.write(formatMessage(result.stdout, result.stdout.includes('FAILED')))
 		}
 		socketConnection.destroy()
 	})
