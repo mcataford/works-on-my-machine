@@ -3,9 +3,9 @@ import { greenText, redText, exec, generateCachedCollectedPathFromActual } from 
 
 import { promises as fs, type Dirent, type PathLike } from 'fs'
 import path from 'path'
+import net from 'net'
 
-/*
- * Collects test files recursively starting from the provided root
+/* * Collects test files recursively starting from the provided root
  * path.
  */
 async function collectTests(root: string): Promise<Array<string>> {
@@ -32,12 +32,8 @@ async function collectTests(root: string): Promise<Array<string>> {
 	return collectedHere
 }
 
-async function runTests(collectedPaths: Array<string>) {
-	for await (const collectedPath of collectedPaths) {
-		// FIXME: This should just use `node` and transform if TS is present instead.
-		const result = await exec(`ts-node ${collectedPath}`, {})
-		console.log(result.stdout)
-	}
+async function assignTestsToWorkers(collectedPaths: Array<string>) {
+    await exec(`ts-node ./src/worker.ts ${collectedPaths.join(' ')}`, {})
 }
 
 async function collectCases(collectedPaths: Array<string>) {
@@ -54,23 +50,42 @@ async function collectCases(collectedPaths: Array<string>) {
 	}
 
 	console.log(greenText(`Collected ${collectedCount} cases`))
-} /*
+} 
+
+function setUpSocket(path: string): net.Server {
+	const server = net.createServer()
+	server.listen(path, () => {
+		console.log('Listening for workers')
+	})
+
+	server.on('connection', (s) => {
+		console.log('Worker connected')
+
+        s.on('data', (d) => {
+			console.log(d.toString('utf8'))
+		})
+	})
+
+	return server
+}/*
  * Logic executed when running the test runner CLI.
  */
 ;(async () => {
 	const [, , collectionRoot, ...omit] = process.argv
+	let server
+
 	try {
 		await fs.mkdir('.womm-cache')
-
+		server = setUpSocket('/tmp/womm-runner.sock')
 		const collectedTests = await collectTests(collectionRoot)
-
 		await collectCases(collectedTests)
-		await runTests(collectedTests)
+		await assignTestsToWorkers(collectedTests)
 	} catch (e) {
 		console.group(redText('Test run failed'))
 		console.log(redText(String(e)))
 		console.groupEnd()
 	} finally {
+		server?.close()
 		await fs.rm('.womm-cache', { force: true, recursive: true })
 	}
 })().catch((e) => {
