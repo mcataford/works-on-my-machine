@@ -17,7 +17,7 @@ function describe(label: TestCaseLabel, testGroup: TestCaseGroup) {
 
 function test(label: TestCaseLabel, testCase: TestCaseFunction): void {
 	if (process.env.COLLECT) {
-		fs.appendFile(`.womm-cache/${generateCachedCollectedPathFromActual(process.argv[1])}`, `${label}\n`)
+		console.log(label)
 		return
 	}
 

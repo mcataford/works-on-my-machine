@@ -1,4 +1,4 @@
-import { getContext, greenText, redText, exec, generateCachedCollectedPathFromActual } from './utils'
+import { getContext, greenText, redText, exec, generateCachedCollectedPathFromActual, splitIntoBatches } from './utils'
 import { type IContext, type TestServer } from './types'
 
 import { promises as fs } from 'fs'
@@ -38,20 +38,7 @@ async function collectTests(root: string): Promise<Array<string>> {
  * worker processes.
  */
 async function assignTestsToWorkers(context: IContext, collectedPaths: Array<string>, workerCount: number = 1) {
-	const desiredBatchSize = Math.max(collectedPaths.length / workerCount, 1)
-	const batchedCollectedPaths = collectedPaths.reduce((acc, path: string) => {
-		if (acc.length === 0) acc.push([])
-
-		const lastBatch = acc[acc.length - 1]
-
-		if (lastBatch.length < desiredBatchSize) {
-			lastBatch.push(path)
-		} else {
-			acc.push([path])
-		}
-
-		return acc
-	}, [] as Array<Array<string>>)
+	const batchedCollectedPaths = splitIntoBatches(collectedPaths, workerCount)
 
 	await Promise.all(
 		batchedCollectedPaths.map(async (batch) =>
@@ -60,17 +47,18 @@ async function assignTestsToWorkers(context: IContext, collectedPaths: Array<str
 	)
 }
 
-async function collectCases(context: IContext, collectedPaths: Array<string>) {
-	let collectedCount = 0
+async function collectCases(context: IContext, collectedPaths: Array<string>, workerCount: number = 1) {
+	const batchedCollectedPaths = splitIntoBatches(collectedPaths, workerCount)
 
-	for await (const collectedPath of collectedPaths) {
-		const result = await exec(`COLLECT=1 ${context.nodeRuntime} ${collectedPath}`, {})
-		const collectedCases = await fs.readFile(
-			`.womm-cache/${generateCachedCollectedPathFromActual(path.resolve(collectedPath))}`,
-			{ encoding: 'utf8' },
-		)
-		collectedCount += collectedCases.split('\n').length
-	}
+	const batchResults = await Promise.all(
+		batchedCollectedPaths.map(async (batch) =>
+			exec(`${context.nodeRuntime} ${context.collectorRuntime} ${batch.join(' ')}`, {}),
+		),
+	)
+
+	const collectedCount = batchResults.reduce((total, batchResult) => {
+		return total + parseInt(batchResult.stdout)
+	}, 0)
 
 	console.log(greenText(`Collected ${collectedCount} cases`))
 }
@@ -79,10 +67,13 @@ function setUpSocket(socketPath: string): TestServer {
 	const server: TestServer = net.createServer()
 	server.listen(socketPath, () => {
 		console.log('Listening for workers')
+		server.workersRegistered = 0
 	})
 
 	server.on('connection', (s) => {
-		console.log('Worker connected')
+		const workerId = server.workersRegistered
+		server.workersRegistered = (server.workersRegistered ?? 0) + 1
+		console.log(`Worker ${workerId} registered.`)
 
 		s.on('data', (d) => {
 			const workerReport: any = JSON.parse(d.toString('utf8'))

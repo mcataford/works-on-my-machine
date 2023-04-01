@@ -26,7 +26,25 @@ export function getContext(runnerPath: string): IContext {
 	return {
 		workerRuntime: path.join(installDirectory, `worker${runnerExtension}`),
 		runnerRuntime: runnerPath,
+		collectorRuntime: path.join(installDirectory, `collector${runnerExtension}`),
 		nodeRuntime,
 		runnerSocket: '/tmp/womm.sock',
 	}
+}
+
+export function splitIntoBatches<T>(data: Array<T>, desiredBatchCount: number = 1): Array<Array<T>> {
+	const desiredBatchSize = Math.max(data.length / desiredBatchCount, 1)
+	return data.reduce((acc, item: T) => {
+		if (acc.length === 0) acc.push([])
+
+		const lastBatch = acc[acc.length - 1]
+
+		if (lastBatch.length < desiredBatchSize) {
+			lastBatch.push(item)
+		} else {
+			acc.push([item])
+		}
+
+		return acc
+	}, [] as Array<Array<T>>)
 }

@@ -7,11 +7,13 @@ export type TestCaseGroup = () => void
 
 export interface TestServer extends Server {
 	failure?: boolean
+	workersRegistered?: number
 }
 
 export interface IContext {
 	workerRuntime: string
 	runnerRuntime: string
+	collectorRuntime: string
 	nodeRuntime: 'ts-node' | 'node'
 	runnerSocket: string
 }
