@@ -38,7 +38,7 @@ async function collectTests(root: string): Promise<Array<string>> {
  * worker processes.
  */
 async function assignTestsToWorkers(context: IContext, collectedPaths: Array<string>, workerCount: number = 1) {
-	const desiredBatchSize = collectedPaths.length / workerCount
+	const desiredBatchSize = Math.max(collectedPaths.length / workerCount, 1)
 	const batchedCollectedPaths = collectedPaths.reduce((acc, path: string) => {
 		if (acc.length === 0) acc.push([])
 
@@ -75,8 +75,12 @@ async function collectCases(context: IContext, collectedPaths: Array<string>) {
 	console.log(greenText(`Collected ${collectedCount} cases`))
 }
 
-function setUpSocket(socketPath: string): net.Server {
-	const server = net.createServer()
+interface TestServer extends net.Server {
+	failure?: boolean
+}
+
+function setUpSocket(socketPath: string): TestServer {
+	const server: TestServer = net.createServer()
 	server.listen(socketPath, () => {
 		console.log('Listening for workers')
 	})
@@ -88,7 +92,7 @@ function setUpSocket(socketPath: string): net.Server {
 			const workerReport: any = JSON.parse(d.toString('utf8'))
 			console.log(workerReport.results)
 
-			if (workerReport.failed) throw Error('NONO')
+			if (workerReport.failed) server.failure = true
 		})
 	})
 
@@ -107,6 +111,8 @@ function setUpSocket(socketPath: string): net.Server {
 		const collectedTests = await collectTests(collectionRoot)
 		await collectCases(context, collectedTests)
 		await assignTestsToWorkers(context, collectedTests)
+
+		if (server.failure) throw new Error('test')
 	} catch (e) {
 		console.group(redText('Test run failed'))
 		console.log(redText(String(e)))
