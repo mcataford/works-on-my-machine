@@ -1,8 +1,9 @@
-import Context from './context'
-import { greenText, redText, exec, generateCachedCollectedPathFromActual } from './utils'
+import { getContext, greenText, redText, exec, generateCachedCollectedPathFromActual, splitIntoBatches } from './utils'
+import { type IContext, type TestServer } from './types'
 
-import { promises as fs, type Dirent, type PathLike } from 'fs'
+import { promises as fs } from 'fs'
 import path from 'path'
+import net from 'net'
 
 /*
  * Collects test files recursively starting from the provided root
@@ -32,46 +33,78 @@ async function collectTests(root: string): Promise<Array<string>> {
 	return collectedHere
 }
 
-async function runTests(collectedPaths: Array<string>) {
-	for await (const collectedPath of collectedPaths) {
-		// FIXME: This should just use `node` and transform if TS is present instead.
-		const result = await exec(`ts-node ${collectedPath}`, {})
-		console.log(result.stdout)
-	}
+/*
+ * Splits the list of collected test files into `workerCount` batches and starts
+ * worker processes.
+ */
+async function assignTestsToWorkers(context: IContext, collectedPaths: Array<string>, workerCount: number = 1) {
+	const batchedCollectedPaths = splitIntoBatches(collectedPaths, workerCount)
+
+	await Promise.all(
+		batchedCollectedPaths.map(async (batch) =>
+			exec(`${context.nodeRuntime} ${context.workerRuntime} ${batch.join(' ')}`, {}),
+		),
+	)
 }
 
-async function collectCases(collectedPaths: Array<string>) {
-	let collectedCount = 0
+async function collectCases(context: IContext, collectedPaths: Array<string>, workerCount: number = 1) {
+	const batchedCollectedPaths = splitIntoBatches(collectedPaths, workerCount)
 
-	for await (const collectedPath of collectedPaths) {
-		// FIXME: This should just use `node` and transform if TS is present instead.
-		const result = await exec(`COLLECT=1 ts-node ${collectedPath}`, {})
-		const collectedCases = await fs.readFile(
-			`.womm-cache/${generateCachedCollectedPathFromActual(path.resolve(collectedPath))}`,
-			{ encoding: 'utf8' },
-		)
-		collectedCount += collectedCases.split('\n').length
-	}
+	const batchResults = await Promise.all(
+		batchedCollectedPaths.map(async (batch) =>
+			exec(`${context.nodeRuntime} ${context.collectorRuntime} ${batch.join(' ')}`, {}),
+		),
+	)
+
+	const collectedCount = batchResults.reduce((total, batchResult) => {
+		return total + parseInt(batchResult.stdout)
+	}, 0)
 
 	console.log(greenText(`Collected ${collectedCount} cases`))
+}
+
+function setUpSocket(socketPath: string): TestServer {
+	const server: TestServer = net.createServer()
+	server.listen(socketPath, () => {
+		console.log('Listening for workers')
+		server.workersRegistered = 0
+	})
+
+	server.on('connection', (s) => {
+		const workerId = server.workersRegistered
+		server.workersRegistered = (server.workersRegistered ?? 0) + 1
+		console.log(`Worker ${workerId} registered.`)
+
+		s.on('data', (d) => {
+			const workerReport: any = JSON.parse(d.toString('utf8'))
+			console.log(workerReport.results)
+
+			if (workerReport.failed) server.failure = true
+		})
+	})
+
+	return server
 } /*
  * Logic executed when running the test runner CLI.
  */
 ;(async () => {
-	const [, , collectionRoot, ...omit] = process.argv
+	const [, runnerPath, collectionRoot, ...omit] = process.argv
+	const context = getContext(runnerPath)
+	let server
+
 	try {
-		await fs.mkdir('.womm-cache')
-
+		server = setUpSocket(context.runnerSocket)
 		const collectedTests = await collectTests(collectionRoot)
+		await collectCases(context, collectedTests)
+		await assignTestsToWorkers(context, collectedTests)
 
-		await collectCases(collectedTests)
-		await runTests(collectedTests)
+		if (server.failure) throw new Error('test')
 	} catch (e) {
 		console.group(redText('Test run failed'))
 		console.log(redText(String(e)))
 		console.groupEnd()
 	} finally {
-		await fs.rm('.womm-cache', { force: true, recursive: true })
+		server?.close()
 	}
 })().catch((e) => {
 	throw e
