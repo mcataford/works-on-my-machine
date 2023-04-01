@@ -17,3 +17,10 @@ export interface IContext {
 	nodeRuntime: 'ts-node' | 'node'
 	runnerSocket: string
 }
+
+export interface Args {
+	targets: Array<string>
+	runtimePath: string
+	collectOnly: boolean
+	help: boolean
+}
