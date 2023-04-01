@@ -1,11 +1,12 @@
-import Context from './context'
-import { greenText, redText, exec, generateCachedCollectedPathFromActual } from './utils'
+import { getContext, greenText, redText, exec, generateCachedCollectedPathFromActual } from './utils'
+import { type IContext } from './types'
 
 import { promises as fs, type Dirent, type PathLike } from 'fs'
 import path from 'path'
 import net from 'net'
 
-/* * Collects test files recursively starting from the provided root
+/*
+ * Collects test files recursively starting from the provided root
  * path.
  */
 async function collectTests(root: string): Promise<Array<string>> {
@@ -32,16 +33,15 @@ async function collectTests(root: string): Promise<Array<string>> {
 	return collectedHere
 }
 
-async function assignTestsToWorkers(collectedPaths: Array<string>) {
-	await exec(`ts-node ./src/worker.ts ${collectedPaths.join(' ')}`, {})
+async function assignTestsToWorkers(context: IContext, collectedPaths: Array<string>) {
+	await exec(`${context.nodeRuntime} ${context.workerRuntime} ${collectedPaths.join(' ')}`, {})
 }
 
-async function collectCases(collectedPaths: Array<string>) {
+async function collectCases(context: IContext, collectedPaths: Array<string>) {
 	let collectedCount = 0
 
 	for await (const collectedPath of collectedPaths) {
-		// FIXME: This should just use `node` and transform if TS is present instead.
-		const result = await exec(`COLLECT=1 ts-node ${collectedPath}`, {})
+		const result = await exec(`COLLECT=1 ${context.nodeRuntime} ${collectedPath}`, {})
 		const collectedCases = await fs.readFile(
 			`.womm-cache/${generateCachedCollectedPathFromActual(path.resolve(collectedPath))}`,
 			{ encoding: 'utf8' },
@@ -71,15 +71,16 @@ function setUpSocket(path: string): net.Server {
  * Logic executed when running the test runner CLI.
  */
 ;(async () => {
-	const [, , collectionRoot, ...omit] = process.argv
-	let server
+	const [, runnerPath, collectionRoot, ...omit] = process.argv
+	const context = getContext(runnerPath)
+    let server
 
 	try {
 		await fs.mkdir('.womm-cache')
-		server = setUpSocket('/tmp/womm-runner.sock')
+		server = setUpSocket(context.runnerSocket)
 		const collectedTests = await collectTests(collectionRoot)
-		await collectCases(collectedTests)
-		await assignTestsToWorkers(collectedTests)
+		await collectCases(context, collectedTests)
+		await assignTestsToWorkers(context, collectedTests)
 	} catch (e) {
 		console.group(redText('Test run failed'))
 		console.log(redText(String(e)))

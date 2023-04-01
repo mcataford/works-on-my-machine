@@ -4,5 +4,8 @@ export type TestCaseFunction = () => void
 export type TestCaseGroup = () => void
 
 export interface IContext {
-	collectedTests: Map<TestFilePath, any>
+	workerRuntime: string
+	runnerRuntime: string
+	nodeRuntime: 'ts-node' | 'node'
+	runnerSocket: string
 }

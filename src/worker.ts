@@ -1,6 +1,6 @@
 import net from 'net'
 
-import { exec } from './utils'
+import { getContext, exec } from './utils'
 
 /*
  * Worker runtime
@@ -14,11 +14,11 @@ import { exec } from './utils'
  * touched by the worker assigned to them.
  */
 async function work() {
-	const socketConnection = net.createConnection('/tmp/womm-runner.sock', async () => {
-		const assignedPaths = process.argv.slice(2)
-
-		for await (const testFilePath of assignedPaths) {
-			const result = await exec(`ts-node ${testFilePath}`, {})
+	const [, workerRuntime, ...assignedTestFiles] = process.argv
+	const context = getContext(workerRuntime)
+	const socketConnection = net.createConnection(context.runnerSocket, async () => {
+		for await (const testFilePath of assignedTestFiles) {
+			const result = await exec(`${context.nodeRuntime} ${testFilePath}`, {})
 			// TODO: Define IPC protocol
 			socketConnection.write(result.stdout)
 		}
