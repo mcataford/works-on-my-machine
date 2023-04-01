@@ -1,5 +1,5 @@
 import { getContext, greenText, redText, exec, generateCachedCollectedPathFromActual } from './utils'
-import { type IContext } from './types'
+import { type IContext, type TestServer } from './types'
 
 import { promises as fs } from 'fs'
 import path from 'path'
@@ -73,10 +73,6 @@ async function collectCases(context: IContext, collectedPaths: Array<string>) {
 	}
 
 	console.log(greenText(`Collected ${collectedCount} cases`))
-}
-
-interface TestServer extends net.Server {
-	failure?: boolean
 }
 
 function setUpSocket(socketPath: string): TestServer {
