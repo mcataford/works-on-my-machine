@@ -1,5 +1,3 @@
-import Context from './context'
-
 import { promises as fs } from 'fs'
 
 import expect from './expect'

@@ -1,7 +1,7 @@
 import { getContext, greenText, redText, exec, generateCachedCollectedPathFromActual } from './utils'
 import { type IContext } from './types'
 
-import { promises as fs, type Dirent, type PathLike } from 'fs'
+import { promises as fs } from 'fs'
 import path from 'path'
 import net from 'net'
 
@@ -33,8 +33,31 @@ async function collectTests(root: string): Promise<Array<string>> {
 	return collectedHere
 }
 
-async function assignTestsToWorkers(context: IContext, collectedPaths: Array<string>) {
-	await exec(`${context.nodeRuntime} ${context.workerRuntime} ${collectedPaths.join(' ')}`, {})
+/*
+ * Splits the list of collected test files into `workerCount` batches and starts
+ * worker processes.
+ */
+async function assignTestsToWorkers(context: IContext, collectedPaths: Array<string>, workerCount: number = 1) {
+	const desiredBatchSize = collectedPaths.length / workerCount
+	const batchedCollectedPaths = collectedPaths.reduce((acc, path: string) => {
+		if (acc.length === 0) acc.push([])
+
+		const lastBatch = acc[acc.length - 1]
+
+		if (lastBatch.length < desiredBatchSize) {
+			lastBatch.push(path)
+		} else {
+			acc.push([path])
+		}
+
+		return acc
+	}, [] as Array<Array<string>>)
+
+	await Promise.all(
+		batchedCollectedPaths.map(async (batch) =>
+			exec(`${context.nodeRuntime} ${context.workerRuntime} ${batch.join(' ')}`, {}),
+		),
+	)
 }
 
 async function collectCases(context: IContext, collectedPaths: Array<string>) {
@@ -52,9 +75,9 @@ async function collectCases(context: IContext, collectedPaths: Array<string>) {
 	console.log(greenText(`Collected ${collectedCount} cases`))
 }
 
-function setUpSocket(path: string): net.Server {
+function setUpSocket(socketPath: string): net.Server {
 	const server = net.createServer()
-	server.listen(path, () => {
+	server.listen(socketPath, () => {
 		console.log('Listening for workers')
 	})
 
@@ -73,7 +96,7 @@ function setUpSocket(path: string): net.Server {
 ;(async () => {
 	const [, runnerPath, collectionRoot, ...omit] = process.argv
 	const context = getContext(runnerPath)
-    let server
+	let server
 
 	try {
 		await fs.mkdir('.womm-cache')
