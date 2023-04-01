@@ -33,7 +33,7 @@ async function collectTests(root: string): Promise<Array<string>> {
 }
 
 async function assignTestsToWorkers(collectedPaths: Array<string>) {
-    await exec(`ts-node ./src/worker.ts ${collectedPaths.join(' ')}`, {})
+	await exec(`ts-node ./src/worker.ts ${collectedPaths.join(' ')}`, {})
 }
 
 async function collectCases(collectedPaths: Array<string>) {
@@ -50,7 +50,7 @@ async function collectCases(collectedPaths: Array<string>) {
 	}
 
 	console.log(greenText(`Collected ${collectedCount} cases`))
-} 
+}
 
 function setUpSocket(path: string): net.Server {
 	const server = net.createServer()
@@ -61,13 +61,13 @@ function setUpSocket(path: string): net.Server {
 	server.on('connection', (s) => {
 		console.log('Worker connected')
 
-        s.on('data', (d) => {
+		s.on('data', (d) => {
 			console.log(d.toString('utf8'))
 		})
 	})
 
 	return server
-}/*
+} /*
  * Logic executed when running the test runner CLI.
  */
 ;(async () => {
