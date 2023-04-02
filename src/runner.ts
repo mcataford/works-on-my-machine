@@ -1,5 +1,9 @@
-import { getContext, greenText, redText, exec, generateCachedCollectedPathFromActual, splitIntoBatches } from './utils'
-import { type IContext, type TestServer } from './types'
+#!/usr/bin/env node
+
+import { getContext, greenText, redText, exec, splitIntoBatches } from './utils'
+import helpText from './help'
+import { type Args, type IContext, type TestServer } from './types'
+import { type Buffer } from 'buffer'
 
 import { promises as fs } from 'fs'
 import path from 'path'
@@ -9,25 +13,27 @@ import net from 'net'
  * Collects test files recursively starting from the provided root
  * path.
  */
-async function collectTests(root: string): Promise<Array<string>> {
+async function collectTests(roots: Array<string>): Promise<Array<string>> {
 	const collectedHere = []
 
-	const rootStats = await fs.stat(root)
+	for (const root of roots) {
+		const rootStats = await fs.stat(root)
 
-	if (rootStats.isFile() && path.basename(root).endsWith('.test.ts')) {
-		collectedHere.push(root)
-	} else if (rootStats.isDirectory()) {
-		const content = await fs.readdir(root, { encoding: 'utf8' })
+		if (rootStats.isFile() && path.basename(root).endsWith('.test.ts')) {
+			collectedHere.push(root)
+		} else if (rootStats.isDirectory()) {
+			const content = await fs.readdir(root, { encoding: 'utf8' })
 
-		const segmentedCollectedPaths = await Promise.all(
-			content.map((item: string) => collectTests(path.join(root, item))),
-		)
-		const collectedPaths = segmentedCollectedPaths.reduce((acc: Array<string>, collectedSegment: Array<string>) => {
-			acc.push(...collectedSegment)
-			return acc
-		}, [] as Array<string>)
+			const segmentedCollectedPaths = await Promise.all(
+				content.map((item: string) => collectTests([path.join(root, item)])),
+			)
+			const collectedPaths = segmentedCollectedPaths.reduce((acc: Array<string>, collectedSegment: Array<string>) => {
+				acc.push(...collectedSegment)
+				return acc
+			}, [] as Array<string>)
 
-		collectedHere.push(...collectedPaths)
+			collectedHere.push(...collectedPaths)
+		}
 	}
 
 	return collectedHere
@@ -75,8 +81,8 @@ function setUpSocket(socketPath: string): TestServer {
 		server.workersRegistered = (server.workersRegistered ?? 0) + 1
 		console.log(`Worker ${workerId} registered.`)
 
-		s.on('data', (d) => {
-			const workerReport: any = JSON.parse(d.toString('utf8'))
+		s.on('data', (rawMessage: Buffer) => {
+			const workerReport: { results: string; failed: boolean } = JSON.parse(rawMessage.toString('utf8'))
 			console.log(workerReport.results)
 
 			if (workerReport.failed) server.failure = true
@@ -84,25 +90,62 @@ function setUpSocket(socketPath: string): TestServer {
 	})
 
 	return server
+}
+
+function parseArgs(args: Array<string>): Args {
+	const [, runtimePath, ...userArgs] = args
+
+	const {
+		argsWithoutFlags,
+		shortFlags,
+		longFlags,
+	}: { argsWithoutFlags: Array<string>; longFlags: Array<string>; shortFlags: Array<string> } = (
+		userArgs as Array<string>
+	).reduce(
+		(acc, arg: string) => {
+			if (arg.startsWith('--')) acc.longFlags.push(arg)
+			else if (arg.startsWith('-')) acc.shortFlags.push(arg)
+			else acc.argsWithoutFlags.push(arg)
+
+			return acc
+		},
+		{ argsWithoutFlags: [], longFlags: [], shortFlags: [] } as {
+			argsWithoutFlags: Array<string>
+			longFlags: Array<string>
+			shortFlags: Array<string>
+		},
+	)
+
+	return {
+		runtimePath,
+		targets: argsWithoutFlags,
+		help: longFlags.includes('--help') || shortFlags.includes('-h'),
+	}
 } /*
  * Logic executed when running the test runner CLI.
  */
 ;(async () => {
-	const [, runnerPath, collectionRoot, ...omit] = process.argv
-	const context = getContext(runnerPath)
+	const args = parseArgs(process.argv)
+
+	if (args.help) {
+		console.log(helpText)
+		return
+	}
+
+	const context = getContext(args.runtimePath)
 	let server
 
 	try {
 		server = setUpSocket(context.runnerSocket)
-		const collectedTests = await collectTests(collectionRoot)
+		const collectedTests = await collectTests(args.targets)
 		await collectCases(context, collectedTests)
+
 		await assignTestsToWorkers(context, collectedTests)
 
-		if (server.failure) throw new Error('test')
+		if (server.failure) throw new Error()
+
 	} catch (e) {
-		console.group(redText('Test run failed'))
-		console.log(redText(String(e)))
-		console.groupEnd()
+		console.log(redText('Test run failed'))
 	} finally {
 		server?.close()
 	}

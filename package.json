@@ -1,13 +1,19 @@
 {
-  "name": "testrunner",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "works-on-my-machine",
+  "description": "A no-dependency test runner",
+  "version": "0.0.0",
+  "main": "dist/runner.js",
   "license": "MIT",
   "packageManager": "yarn@3.5.0",
+  "files": [
+    "dist/**/*.js"
+  ],
   "bin": {
-    "womm": "./dist/runner.js"
+    "womm": "dist/runner.js"
   },
   "scripts": {
+    "prepack": "yarn build",
+    "prebuild": "rm -rf dist",
     "lint": "rome check src tests && rome format src tests",
     "lint:fix": "rome check src tests --apply && rome format src tests --write",
     "test": "ts-node ./src/runner.ts ./tests",

@@ -5,8 +5,11 @@ import { type IContext } from './types'
 
 export const exec = util.promisify(childProcess.exec)
 
-export function generateCachedCollectedPathFromActual(path: string): string {
-	return path.replace(/[\/.]/g, '_')
+/*
+ * Terminal text style
+ */
+export function boldText(text: string): string {
+	return `\x1b[1m${text}\x1b[0m`
 }
 
 export function greenText(text: string): string {
@@ -17,6 +20,12 @@ export function redText(text: string): string {
 	return `\x1b[31m${text}\x1b[0m`
 }
 
+/*
+ * Generates a context object that contains general information
+ * about the test runner. The parameter here should always be
+ * `process.argv[1]`, which will allow all the other paths
+ * to be set properly.
+ */
 export function getContext(runnerPath: string): IContext {
 	const installDirectory = path.dirname(runnerPath)
 	const runnerExtension = path.extname(runnerPath)
@@ -32,6 +41,10 @@ export function getContext(runnerPath: string): IContext {
 	}
 }
 
+/*
+ * Divides the given list into `desiredBatchCount` batches, returning
+ * an array of arrays which add up to the given list.
+ */
 export function splitIntoBatches<T>(data: Array<T>, desiredBatchCount: number = 1): Array<Array<T>> {
 	const desiredBatchSize = Math.max(data.length / desiredBatchCount, 1)
 	return data.reduce((acc, item: T) => {

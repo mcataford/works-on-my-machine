@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs'
 
 import expect from './expect'
-import { greenText, redText, generateCachedCollectedPathFromActual } from './utils'
+import { greenText, redText } from './utils'
 import { type TestCaseLabel, type TestCaseFunction, type TestCaseGroup } from './types'
 
 function describe(label: TestCaseLabel, testGroup: TestCaseGroup) {
