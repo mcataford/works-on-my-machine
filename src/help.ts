@@ -1,9 +1,7 @@
-import packageJson from '../package.json'
-
 export default `
-Works on my machine v${packageJson.version}
+Works on my machine v0.0.0
 
-${packageJson.description ?? ''}
+A no-dependency test runner
 ---
 womm [--collectOnly] [-c] ...<test-files-or-directories>
 

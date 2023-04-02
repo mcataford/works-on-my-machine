@@ -1,12 +1,12 @@
 {
   "name": "works-on-my-machine",
   "description": "A no-dependency test runner",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "main": "dist/runner.js",
   "license": "MIT",
   "packageManager": "yarn@3.5.0",
   "files": [
-    "dist/*.js"
+    "dist/**/*.js"
   ],
   "bin": {
     "womm": "dist/runner.js"
