@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
-import { getContext, greenText, redText, exec, generateCachedCollectedPathFromActual, splitIntoBatches } from './utils'
+import { getContext, greenText, redText, exec, splitIntoBatches } from './utils'
 import helpText from './help'
 import { type Args, type IContext, type TestServer } from './types'
+import { type Buffer } from 'buffer'
 
 import { promises as fs } from 'fs'
 import path from 'path'
@@ -80,8 +81,8 @@ function setUpSocket(socketPath: string): TestServer {
 		server.workersRegistered = (server.workersRegistered ?? 0) + 1
 		console.log(`Worker ${workerId} registered.`)
 
-		s.on('data', (d) => {
-			const workerReport: { results: string; failed: boolean } = JSON.parse(d.toString('utf8'))
+		s.on('data', (rawMessage: Buffer) => {
+			const workerReport: { results: string; failed: boolean } = JSON.parse(rawMessage.toString('utf8'))
 			console.log(workerReport.results)
 
 			if (workerReport.failed) server.failure = true
