@@ -1,5 +1,6 @@
 import assert from 'assert'
 
+import { type ExpectBase, type Expect } from './types'
 import matchers from './matchers'
 
 class TestAssertionFailed extends Error {
@@ -9,18 +10,7 @@ class TestAssertionFailed extends Error {
 	}
 }
 
-interface ExpectBase<ValueType> {
-	value?: ValueType
-	negated?: boolean
-	not: ExpectBase<ValueType> & any
-	addMatcher: (this: ExpectBase<ValueType> & any, matcher: any) => void
-}
-
-type ComparisonMatcher = (value: unknown) => boolean
-
-type Expectation<ValueType> = ExpectBase<ValueType> & { [key: string]: ComparisonMatcher }
-
-function expect<ValueType>(value: ValueType): Expectation<ValueType> {
+function expect<ValueType>(value: ValueType): Expect<ValueType> {
 	const expectation: ExpectBase<ValueType> = {
 		value,
 		negated: false,
@@ -47,7 +37,7 @@ function expect<ValueType>(value: ValueType): Expectation<ValueType> {
 		})
 	})
 
-	return expectation as Expectation<ValueType>
+	return expectation as Expect<ValueType>
 }
 
 export default expect

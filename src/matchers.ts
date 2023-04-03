@@ -1,9 +1,6 @@
 import assert from 'assert'
 
-interface MatcherReport {
-	pass: boolean
-	stdout: string
-}
+import { type MatcherReport } from './types'
 
 function toEqual(value: unknown, other: unknown): MatcherReport {
 	const output = { pass: false, stdout: '' }

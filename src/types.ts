@@ -23,3 +23,19 @@ export interface Args {
 	runtimePath: string
 	help: boolean
 }
+
+export interface MatcherReport {
+	pass: boolean
+	stdout: string
+}
+
+export interface ExpectBase<ValueType> {
+	value?: ValueType
+	negated?: boolean
+	not: ExpectBase<ValueType> & any
+	addMatcher: (this: ExpectBase<ValueType> & any, matcher: any) => void
+}
+
+export type ComparisonMatcher = (value: unknown) => boolean
+
+export type Expect<ValueType> = ExpectBase<ValueType> & { [key: string]: ComparisonMatcher }
