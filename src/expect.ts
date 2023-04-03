@@ -10,15 +10,15 @@ class TestAssertionFailed extends Error {
 }
 
 interface ExpectBase<ValueType> {
-    value?: ValueType
-    negated?: boolean
-    not: ExpectBase<ValueType> & any
-    addMatcher: (this: ExpectBase<ValueType> & any, matcher: any) => void
+	value?: ValueType
+	negated?: boolean
+	not: ExpectBase<ValueType> & any
+	addMatcher: (this: ExpectBase<ValueType> & any, matcher: any) => void
 }
 
 type ComparisonMatcher = (value: unknown) => boolean
 
-type Expectation<ValueType> = ExpectBase<ValueType> & {[key: string]: ComparisonMatcher }
+type Expectation<ValueType> = ExpectBase<ValueType> & { [key: string]: ComparisonMatcher }
 
 function expect<ValueType>(value: ValueType): Expectation<ValueType> {
 	const expectation: ExpectBase<ValueType> = {
@@ -28,7 +28,7 @@ function expect<ValueType>(value: ValueType): Expectation<ValueType> {
 			this.negated = !this.negated
 			return this
 		},
-        addMatcher: function (this: any, matcher: any) {
+		addMatcher: function (this: any, matcher: any) {
 			return (other: unknown) => {
 				const out = matcher(this.value, other)
 
@@ -40,11 +40,11 @@ function expect<ValueType>(value: ValueType): Expectation<ValueType> {
 			}
 		},
 	}
-    Object.entries(matchers).forEach(([label, matcher]) => {
-        Object.defineProperty(expectation, label, {
-            value: expectation.addMatcher(matcher),
-            enumerable: true
-        })
+	Object.entries(matchers).forEach(([label, matcher]) => {
+		Object.defineProperty(expectation, label, {
+			value: expectation.addMatcher(matcher),
+			enumerable: true,
+		})
 	})
 
 	return expectation as Expectation<ValueType>

@@ -57,6 +57,19 @@ describe('Identity', () => {
 	})
 })
 
+describe('Exception expectation', () => {
+	test('Expects error', () => {
+		const err = new Error('err')
+		expect(() => {
+			throw err
+		}).toThrow(err)
+	})
+
+	test('Expects no error', () => {
+		expect(() => {}).not.toThrow()
+	})
+})
+
 test('Stacked equality negation', () => {
 	assert.doesNotThrow(() => expect('yes').not.not.toEqual('yes'))
 })
