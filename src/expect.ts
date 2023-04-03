@@ -1,5 +1,7 @@
 import assert from 'assert'
 
+import matchers from './matchers'
+
 class TestAssertionFailed extends Error {
 	constructor(message: string) {
 		super(message)
@@ -7,41 +9,45 @@ class TestAssertionFailed extends Error {
 	}
 }
 
-class Expectation<ValueType> {
-	value: ValueType
-	negated: boolean
-
-	constructor(value: ValueType) {
-		this.value = value
-		this.negated = false
-	}
-
-	/*
-	 * Negates the expectation.
-	 */
-	get not() {
-		this.negated = !this.negated
-		return this
-	}
-
-	toEqual(value: ValueType) {
-		if (this.negated) {
-			assert.notDeepEqual(this.value, value, new TestAssertionFailed(`Equal! ${this.value} = ${value}`))
-		} else {
-			assert.deepEqual(this.value, value, new TestAssertionFailed(`NotEqual! ${this.value} != ${value}`))
-		}
-	}
-
-	toBe(value: ValueType) {
-		const isSame = Object.is(this.value, value)
-
-		if ((isSame && !this.negated) || (!isSame && this.negated)) return
-		throw new TestAssertionFailed(`NotEqual! ${this.value} ${this.negated ? '===' : '!=='} ${value}`)
-	}
+interface ExpectBase<ValueType> {
+    value?: ValueType
+    negated?: boolean
+    not: ExpectBase<ValueType> & any
+    addMatcher: (this: ExpectBase<ValueType> & any, matcher: any) => void
 }
 
-function expect<ValueType>(value: ValueType) {
-	return new Expectation(value)
+type ComparisonMatcher = (value: unknown) => boolean
+
+type Expectation<ValueType> = ExpectBase<ValueType> & {[key: string]: ComparisonMatcher }
+
+function expect<ValueType>(value: ValueType): Expectation<ValueType> {
+	const expectation: ExpectBase<ValueType> = {
+		value,
+		negated: false,
+		get not() {
+			this.negated = !this.negated
+			return this
+		},
+        addMatcher: function (this: any, matcher: any) {
+			return (other: unknown) => {
+				const out = matcher(this.value, other)
+
+				if (this.negated) out.pass = !out.pass
+
+				if (!out.pass) {
+					throw new TestAssertionFailed(out.stdout)
+				}
+			}
+		},
+	}
+    Object.entries(matchers).forEach(([label, matcher]) => {
+        Object.defineProperty(expectation, label, {
+            value: expectation.addMatcher(matcher),
+            enumerable: true
+        })
+	})
+
+	return expectation as Expectation<ValueType>
 }
 
 export default expect
