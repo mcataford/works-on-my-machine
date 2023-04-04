@@ -14,8 +14,8 @@
   "scripts": {
     "prepack": "yarn build",
     "prebuild": "rm -rf dist",
-    "lint": "rome check src tests && rome format src tests",
-    "lint:fix": "rome check src tests --apply && rome format src tests --write",
+    "lint": "rome format src tests && rome check src tests",
+    "lint:fix": "rome format src tests --write && rome check src tests --apply",
     "test": "ts-node ./src/runner.ts ./tests",
     "build": "tsc --project ."
   },
