@@ -26,7 +26,7 @@ export interface Args {
 
 export interface MatcherReport {
 	pass: boolean
-	stdout: string
+	message: string
 }
 
 export interface ExpectBase<ValueType> {

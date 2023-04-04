@@ -12,14 +12,17 @@ import { type MatcherReport } from './types'
  * Asserts whether value and other are strictly equal.
  */
 function toEqual(value: unknown, other: unknown): MatcherReport {
-	const output = { pass: false, stdout: '' }
+	const output = { pass: false, message: '' }
 
 	try {
 		assert.deepEqual(value, other)
 		output.pass = true
 	} catch (e) {
-		output.stdout = String(e)
+		console.log(e)
+		output.message = `${value} != ${other}`
 	}
+
+	console.log(output)
 
 	return output
 }
@@ -29,19 +32,23 @@ function toEqual(value: unknown, other: unknown): MatcherReport {
  */
 function toBe(value: unknown, other: unknown): MatcherReport {
 	const isSame = Object.is(value, other)
-	return { pass: isSame, stdout: '' }
+	return { pass: isSame, message: `${value} is not ${other}` }
 }
 
 /*
  * Asserts whether the provided function throws the provided error.
  */
 function toThrow(func: () => unknown, error: Error): MatcherReport {
-	const report = { pass: false, stdout: '' }
+	const report = { pass: false, message: '' }
 
 	try {
 		func()
 	} catch (e) {
 		report.pass = true
+	}
+
+	if (!report.pass) {
+		report.message = 'Function did not throw'
 	}
 
 	return report

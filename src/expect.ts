@@ -25,7 +25,7 @@ function expect<ValueType>(value: ValueType): Expect<ValueType> {
 				if (this.negated) out.pass = !out.pass
 
 				if (!out.pass) {
-					throw new TestAssertionFailed(out.stdout)
+					throw new TestAssertionFailed(out.message)
 				}
 			}
 		},
