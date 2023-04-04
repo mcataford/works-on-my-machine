@@ -143,7 +143,6 @@ function parseArgs(args: Array<string>): Args {
 		await assignTestsToWorkers(context, collectedTests)
 
 		if (server.failure) throw new Error()
-
 	} catch (e) {
 		console.log(redText('Test run failed'))
 	} finally {

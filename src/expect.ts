@@ -1,5 +1,8 @@
 import assert from 'assert'
 
+import { type ExpectBase, type Expect } from './types'
+import matchers from './matchers'
+
 class TestAssertionFailed extends Error {
 	constructor(message: string) {
 		super(message)
@@ -7,41 +10,46 @@ class TestAssertionFailed extends Error {
 	}
 }
 
-class Expectation<ValueType> {
-	value: ValueType
-	negated: boolean
+function expect<ValueType>(value: ValueType): Expect<ValueType> {
+	const expectation: ExpectBase<ValueType> = {
+		value,
+		negated: false,
+		not: {},
+		addMatcher: function (this: any, matcher: any) {
+			return (other: unknown) => {
+				const out = matcher(this.value, other)
 
-	constructor(value: ValueType) {
-		this.value = value
-		this.negated = false
+				if (!out.pass) {
+					throw new TestAssertionFailed(out.message)
+				}
+			}
+		},
 	}
+	Object.entries(matchers.matchers).forEach(([label, matcher]) => {
+		Object.defineProperty(expectation, label, {
+			value: expectation.addMatcher(matcher),
+			enumerable: true,
+		})
 
-	/*
-	 * Negates the expectation.
-	 */
-	get not() {
-		this.negated = !this.negated
-		return this
-	}
-
-	toEqual(value: ValueType) {
-		if (this.negated) {
-			assert.notDeepEqual(this.value, value, new TestAssertionFailed(`Equal! ${this.value} = ${value}`))
-		} else {
-			assert.deepEqual(this.value, value, new TestAssertionFailed(`NotEqual! ${this.value} != ${value}`))
+		if (label in matchers.matchersToInverseMap) {
+			const reverseMatcherName = matchers.matchersToInverseMap[
+				label as keyof typeof matchers.matchersToInverseMap
+			] as keyof typeof matchers.inverseMatchers
+			Object.defineProperty(expectation.not, label, {
+				value: expectation.addMatcher(matchers.inverseMatchers[reverseMatcherName]),
+				enumerable: true,
+			})
 		}
-	}
+	})
 
-	toBe(value: ValueType) {
-		const isSame = Object.is(this.value, value)
+	Object.entries(matchers.inverseMatchers).forEach(([label, matcher]) => {
+		Object.defineProperty(expectation, label, {
+			value: expectation.addMatcher(matcher),
+			enumerable: true,
+		})
+	})
 
-		if ((isSame && !this.negated) || (!isSame && this.negated)) return
-		throw new TestAssertionFailed(`NotEqual! ${this.value} ${this.negated ? '===' : '!=='} ${value}`)
-	}
-}
-
-function expect<ValueType>(value: ValueType) {
-	return new Expectation(value)
+	return expectation as Expect<ValueType>
 }
 
 export default expect
