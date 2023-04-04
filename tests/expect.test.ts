@@ -70,10 +70,6 @@ describe('Exception expectation', () => {
 	})
 })
 
-test('Stacked equality negation', () => {
-	assert.doesNotThrow(() => expect('yes').not.not.toEqual('yes'))
-})
-
 test('Identity negation', () => {
 	assert.doesNotThrow(() => expect('yes').not.toBe('no'))
 })

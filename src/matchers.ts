@@ -18,13 +18,19 @@ function toEqual(value: unknown, other: unknown): MatcherReport {
 		assert.deepEqual(value, other)
 		output.pass = true
 	} catch (e) {
-		console.log(e)
 		output.message = `${value} != ${other}`
 	}
 
-	console.log(output)
-
 	return output
+}
+
+function toNotEqual(value: unknown, other: unknown): MatcherReport {
+	const out = toEqual(value, other)
+
+	out.pass = !out.pass
+	out.message = out.pass ? '' : `${value} == ${other}`
+
+	return out
 }
 
 /*
@@ -33,6 +39,15 @@ function toEqual(value: unknown, other: unknown): MatcherReport {
 function toBe(value: unknown, other: unknown): MatcherReport {
 	const isSame = Object.is(value, other)
 	return { pass: isSame, message: `${value} is not ${other}` }
+}
+
+function toNotBe(value: unknown, other: unknown): MatcherReport {
+	const out = toBe(value, other)
+
+	out.pass = !out.pass
+	out.message = out.pass ? '' : `${value} is ${other}`
+
+	return out
 }
 
 /*
@@ -54,4 +69,16 @@ function toThrow(func: () => unknown, error: Error): MatcherReport {
 	return report
 }
 
-export default { toEqual, toBe, toThrow }
+function toNotThrow(func: () => unknown, error: Error): MatcherReport {
+	const out = toThrow(func, error)
+
+	out.pass = !out.pass
+	out.message = out.pass ? '' : 'Function threw exception'
+
+	return out
+}
+
+const matchers = { toEqual, toBe, toThrow }
+const inverseMatchers = { toNotEqual, toNotBe, toNotThrow }
+const matchersToInverseMap = { toEqual: 'toNotEqual', toBe: 'toNotBe', toThrow: 'toNotThrow' }
+export default { matchers, inverseMatchers, matchersToInverseMap }

@@ -14,15 +14,10 @@ function expect<ValueType>(value: ValueType): Expect<ValueType> {
 	const expectation: ExpectBase<ValueType> = {
 		value,
 		negated: false,
-		get not() {
-			this.negated = !this.negated
-			return this
-		},
+		not: {},
 		addMatcher: function (this: any, matcher: any) {
 			return (other: unknown) => {
 				const out = matcher(this.value, other)
-
-				if (this.negated) out.pass = !out.pass
 
 				if (!out.pass) {
 					throw new TestAssertionFailed(out.message)
@@ -30,7 +25,24 @@ function expect<ValueType>(value: ValueType): Expect<ValueType> {
 			}
 		},
 	}
-	Object.entries(matchers).forEach(([label, matcher]) => {
+	Object.entries(matchers.matchers).forEach(([label, matcher]) => {
+		Object.defineProperty(expectation, label, {
+			value: expectation.addMatcher(matcher),
+			enumerable: true,
+		})
+
+		if (label in matchers.matchersToInverseMap) {
+			const reverseMatcherName = matchers.matchersToInverseMap[
+				label as keyof typeof matchers.matchersToInverseMap
+			] as keyof typeof matchers.inverseMatchers
+			Object.defineProperty(expectation.not, label, {
+				value: expectation.addMatcher(matchers.inverseMatchers[reverseMatcherName]),
+				enumerable: true,
+			})
+		}
+	})
+
+	Object.entries(matchers.inverseMatchers).forEach(([label, matcher]) => {
 		Object.defineProperty(expectation, label, {
 			value: expectation.addMatcher(matcher),
 			enumerable: true,
