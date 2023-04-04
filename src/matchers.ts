@@ -24,6 +24,9 @@ function toEqual(value: unknown, other: unknown): MatcherReport {
 	return output
 }
 
+/*
+ * Inverse of toEqual.
+ */
 function toNotEqual(value: unknown, other: unknown): MatcherReport {
 	const out = toEqual(value, other)
 
@@ -41,6 +44,9 @@ function toBe(value: unknown, other: unknown): MatcherReport {
 	return { pass: isSame, message: `${value} is not ${other}` }
 }
 
+/*
+ * Inverse ot toBe.
+ */
 function toNotBe(value: unknown, other: unknown): MatcherReport {
 	const out = toBe(value, other)
 
@@ -69,6 +75,9 @@ function toThrow(func: () => unknown, error: Error): MatcherReport {
 	return report
 }
 
+/*
+ * Inverse of toThrow.
+ */
 function toNotThrow(func: () => unknown, error: Error): MatcherReport {
 	const out = toThrow(func, error)
 
