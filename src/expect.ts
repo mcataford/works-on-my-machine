@@ -7,7 +7,6 @@ import {
 	type RawMatcher,
 	type RawNoArgMatcher,
 	type RawComparisonMatcher,
-	type ExpectWithMatchers,
 	type RawMatchersMap,
 } from './types'
 import matchers from './matchers'
@@ -87,6 +86,8 @@ class Expect<ValueType> {
 		})
 	}
 }
+
+type ExpectWithMatchers<ValueType> = Expect<ValueType> & { [key: string]: Matcher }
 
 export default (() => {
 	Object.entries(matchers.matchers).forEach(([label, matcher]) => {

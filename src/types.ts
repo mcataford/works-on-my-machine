@@ -39,11 +39,7 @@ export type RawNoArgFuncMatcher = (value: () => unknown) => MatcherReport
 export type Matcher = (...rest: Array<unknown>) => void
 export type RawMatcher = RawComparisonMatcher | RawNoArgMatcher | RawNoArgFuncMatcher
 
-export type ExpectWithMatchers<ValueType> = Expect<ValueType> & { [key: string]: Matcher }
-
 export interface RawMatchersMap {
 	comparisonMatchers: Array<RawComparisonMatcher>
 	noArgMatchers: Array<RawNoArgMatcher>
 }
-
-export type Expect<ValueType> = ExpectBase<ValueType> & { [key: string]: Matcher }
