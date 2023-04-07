@@ -35,7 +35,7 @@ class Expect<ValueType> {
 	 * Collection of inverted matchers. Any matchers registered
 	 * is also available negated under .not.
 	 */
-	not: { [key: MatcherName]: Matcher }
+	not: { [key: MatcherName]: Matcher } = {}
 
 	/*
 	 * Registers matchers with Expect. At this point, Expect knows of them, but
@@ -96,7 +96,6 @@ class Expect<ValueType> {
 
 	constructor(value: ValueType) {
 		this.value = value
-		this.not = {}
 
 		Expect.#getRawMatchers().forEach((matcher) => {
 			this.#extendWithMatcher(matcher)
