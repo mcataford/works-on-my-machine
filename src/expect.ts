@@ -26,7 +26,15 @@ class Expect<ValueType> {
 		noArgMatchers: [],
 	}
 
+	/*
+	 * Value the expectation is run against.
+	 */
 	value: ValueType
+
+	/*
+	 * Collection of inverted matchers. Any matchers registered
+	 * is also available negated under .not.
+	 */
 	not: { [key: MatcherName]: Matcher }
 
 	/*
@@ -38,10 +46,17 @@ class Expect<ValueType> {
 		else Expect.#rawMatchers.comparisonMatchers.push(matcher as RawComparisonMatcher)
 	}
 
+	/*
+	 * Returns all registered matchers.
+	 */
 	static #getRawMatchers(): Array<RawMatcher> {
 		return [...Expect.#rawMatchers.comparisonMatchers, ...Expect.#rawMatchers.noArgMatchers]
 	}
 
+	/*
+	 *  Prepares a raw matchers for the current
+	 *  Expect instance.
+	 */
 	#prepareMatcher(matcher: RawMatcher): Matcher {
 		if (matcher.length === 1) {
 			return (() => {
@@ -64,6 +79,9 @@ class Expect<ValueType> {
 		throw Error('Unknown matcher layout')
 	}
 
+	/*
+	 * Adds a matcher to the current Expect instance.
+	 */
 	#extendWithMatcher(matcher: RawMatcher) {
 		const reverseMatcher = matchersToInverseMap[matcher.name as keyof typeof matchersToInverseMap]
 		Object.defineProperty(this, matcher.name, {
@@ -93,6 +111,11 @@ type ExpectWithMatchers<ValueType> = Expect<ValueType> & {
 	[key: MatcherName]: Matcher
 }
 
+/*
+ * The `expect` function returned is the main access point
+ * to create Expect objects. On import, all the built-in matchers
+ * are registered, but more can be registered ad-hoc via `addMatcher`.
+ */
 export default (() => {
 	matchers.forEach((matcher) => {
 		Expect.addMatcher(matcher)
