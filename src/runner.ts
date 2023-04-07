@@ -99,9 +99,11 @@ function parseArgs(args: Array<string>): Args {
 		argsWithoutFlags,
 		shortFlags,
 		longFlags,
-	}: { argsWithoutFlags: Array<string>; longFlags: Array<string>; shortFlags: Array<string> } = (
-		userArgs as Array<string>
-	).reduce(
+	}: {
+		argsWithoutFlags: Array<string>
+		longFlags: Array<string>
+		shortFlags: Array<string>
+	} = (userArgs as Array<string>).reduce(
 		(acc, arg: string) => {
 			if (arg.startsWith('--')) acc.longFlags.push(arg)
 			else if (arg.startsWith('-')) acc.shortFlags.push(arg)
