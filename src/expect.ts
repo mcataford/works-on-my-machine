@@ -77,7 +77,7 @@ class Expect<ValueType> {
 		})
 
 		Expect.#rawMatchers.noArgMatchers.forEach((matcher: RawNoArgMatcher) => {
-		    this.#extendWithMatcher(matcher)	
+			this.#extendWithMatcher(matcher)
 		})
 	}
 }
