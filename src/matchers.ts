@@ -87,8 +87,7 @@ function toNotThrow(func: () => unknown): MatcherReport {
 	return out
 }
 
-const matchers = { toEqual, toBe, toThrow }
-const inverseMatchers = { toNotEqual, toNotBe, toNotThrow }
+const matchers = { toEqual, toBe, toThrow, toNotEqual, toNotBe, toNotThrow }
 const matchersToInverseMap = {
 	toEqual: toNotEqual,
 	toBe: toNotBe,
@@ -97,4 +96,4 @@ const matchersToInverseMap = {
 	toNotEqual: toEqual,
 	toNotBe: toBe,
 }
-export default { matchers, inverseMatchers, matchersToInverseMap }
+export default { matchers, matchersToInverseMap }

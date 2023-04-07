@@ -55,34 +55,29 @@ class Expect<ValueType> {
 		throw Error('Unknown matcher layout')
 	}
 
+	#extendWithMatcher(matcher: RawMatcher) {
+		const reverseMatcher = matchers.matchersToInverseMap[matcher.name as keyof typeof matchers.matchersToInverseMap]
+		Object.defineProperty(this, matcher.name, {
+			value: this.#prepareMatcher(matcher) as ComparisonMatcher,
+			enumerable: true,
+		})
+
+		Object.defineProperty(this.not, matcher.name, {
+			value: this.#prepareMatcher(reverseMatcher) as ComparisonMatcher,
+			enumerable: true,
+		})
+	}
+
 	constructor(value: ValueType) {
 		this.value = value
 		this.not = {}
 
 		Expect.#rawMatchers.comparisonMatchers.forEach((matcher: RawMatcher) => {
-			const reverseMatcher = matchers.matchersToInverseMap[matcher.name as keyof typeof matchers.matchersToInverseMap]
-			Object.defineProperty(this, matcher.name, {
-				value: this.#prepareMatcher(matcher) as ComparisonMatcher,
-				enumerable: true,
-			})
-
-			Object.defineProperty(this.not, matcher.name, {
-				value: this.#prepareMatcher(reverseMatcher) as ComparisonMatcher,
-				enumerable: true,
-			})
+			this.#extendWithMatcher(matcher)
 		})
 
 		Expect.#rawMatchers.noArgMatchers.forEach((matcher: RawNoArgMatcher) => {
-			const reverseMatcher = matchers.matchersToInverseMap[matcher.name as keyof typeof matchers.matchersToInverseMap]
-			Object.defineProperty(this, matcher.name, {
-				value: this.#prepareMatcher(matcher) as NoArgMatcher,
-				enumerable: true,
-			})
-
-			Object.defineProperty(this.not, matcher.name, {
-				value: this.#prepareMatcher(reverseMatcher) as NoArgMatcher,
-				enumerable: true,
-			})
+		    this.#extendWithMatcher(matcher)	
 		})
 	}
 }
@@ -91,10 +86,6 @@ type ExpectWithMatchers<ValueType> = Expect<ValueType> & { [key: string]: Matche
 
 export default (() => {
 	Object.entries(matchers.matchers).forEach(([label, matcher]) => {
-		Expect.addMatcher(matcher)
-	})
-
-	Object.entries(matchers.inverseMatchers).forEach(([label, matcher]) => {
 		Expect.addMatcher(matcher)
 	})
 
