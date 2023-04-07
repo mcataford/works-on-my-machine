@@ -59,7 +59,7 @@ function toNotBe(value: unknown, other: unknown): MatcherReport {
 /*
  * Asserts whether the provided function throws the provided error.
  */
-function toThrow(func: () => unknown, error: Error): MatcherReport {
+function toThrow(func: () => unknown): MatcherReport {
 	const report = { pass: false, message: '' }
 
 	try {
@@ -78,8 +78,8 @@ function toThrow(func: () => unknown, error: Error): MatcherReport {
 /*
  * Inverse of toThrow.
  */
-function toNotThrow(func: () => unknown, error: Error): MatcherReport {
-	const out = toThrow(func, error)
+function toNotThrow(func: () => unknown): MatcherReport {
+	const out = toThrow(func)
 
 	out.pass = !out.pass
 	out.message = out.pass ? '' : 'Function threw exception'
@@ -89,5 +89,12 @@ function toNotThrow(func: () => unknown, error: Error): MatcherReport {
 
 const matchers = { toEqual, toBe, toThrow }
 const inverseMatchers = { toNotEqual, toNotBe, toNotThrow }
-const matchersToInverseMap = { toEqual: 'toNotEqual', toBe: 'toNotBe', toThrow: 'toNotThrow' }
+const matchersToInverseMap = {
+	toEqual: toNotEqual,
+	toBe: toNotBe,
+	toThrow: toNotThrow,
+	toNotThrow: toThrow,
+	toNotEqual: toEqual,
+	toNotBe: toBe,
+}
 export default { matchers, inverseMatchers, matchersToInverseMap }

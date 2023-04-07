@@ -62,7 +62,7 @@ describe('Exception expectation', () => {
 		const err = new Error('err')
 		expect(() => {
 			throw err
-		}).toThrow(err)
+		}).toThrow()
 	})
 
 	test('Expects no error', () => {

@@ -29,13 +29,21 @@ export interface MatcherReport {
 	message: string
 }
 
-export interface ExpectBase<ValueType> {
-	value?: ValueType
-	negated?: boolean
-	not: ExpectBase<ValueType> & any
-	addMatcher: (this: ExpectBase<ValueType> & any, matcher: any) => void
+export type ComparisonMatcher = (value: unknown) => void
+export type NoArgMatcher = () => void
+
+export type RawComparisonFuncMatcher = (value: () => unknown, other: unknown) => MatcherReport
+export type RawComparisonMatcher = (value: unknown, other: unknown) => MatcherReport
+export type RawNoArgMatcher = (value: unknown | (() => unknown)) => MatcherReport
+export type RawNoArgFuncMatcher = (value: () => unknown) => MatcherReport
+export type Matcher = (...rest: Array<unknown>) => void
+export type RawMatcher = RawComparisonMatcher | RawNoArgMatcher | RawNoArgFuncMatcher
+
+export type ExpectWithMatchers<ValueType> = Expect<ValueType> & { [key: string]: Matcher }
+
+export interface RawMatchersMap {
+	comparisonMatchers: Array<RawComparisonMatcher>
+	noArgMatchers: Array<RawNoArgMatcher>
 }
 
-export type ComparisonMatcher = (value: unknown) => boolean
-
-export type Expect<ValueType> = ExpectBase<ValueType> & { [key: string]: ComparisonMatcher }
+export type Expect<ValueType> = ExpectBase<ValueType> & { [key: string]: Matcher }
