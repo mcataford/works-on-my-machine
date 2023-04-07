@@ -19,7 +19,7 @@ class TestAssertionFailed extends Error {
 }
 
 class Expect<ValueType> {
-	static rawMatchers: RawMatchersMap = { comparisonMatchers: [], noArgMatchers: [] }
+	static #rawMatchers: RawMatchersMap = { comparisonMatchers: [], noArgMatchers: [] }
 
 	value: unknown
 	not: { [key: string]: Matcher }
@@ -29,11 +29,11 @@ class Expect<ValueType> {
 	 * still needs to prepare them on instantiation so they can be used.
 	 */
 	static addMatcher(matcher: RawMatcher) {
-		if (matcher.length == 1) Expect.rawMatchers.noArgMatchers.push(matcher as RawNoArgMatcher)
-		else Expect.rawMatchers.comparisonMatchers.push(matcher as RawComparisonMatcher)
+		if (matcher.length == 1) Expect.#rawMatchers.noArgMatchers.push(matcher as RawNoArgMatcher)
+		else Expect.#rawMatchers.comparisonMatchers.push(matcher as RawComparisonMatcher)
 	}
 
-	prepareMatcher(matcher: RawMatcher): Matcher {
+	#prepareMatcher(matcher: RawMatcher): Matcher {
 		if (matcher.length === 1) {
 			return (() => {
 				const out = (matcher as RawNoArgMatcher)(this.value)
@@ -59,28 +59,28 @@ class Expect<ValueType> {
 		this.value = value
 		this.not = {}
 
-		Expect.rawMatchers.comparisonMatchers.forEach((matcher: RawMatcher) => {
+		Expect.#rawMatchers.comparisonMatchers.forEach((matcher: RawMatcher) => {
 			const reverseMatcher = matchers.matchersToInverseMap[matcher.name as keyof typeof matchers.matchersToInverseMap]
 			Object.defineProperty(this, matcher.name, {
-				value: this.prepareMatcher(matcher) as ComparisonMatcher,
+				value: this.#prepareMatcher(matcher) as ComparisonMatcher,
 				enumerable: true,
 			})
 
 			Object.defineProperty(this.not, matcher.name, {
-				value: this.prepareMatcher(reverseMatcher) as ComparisonMatcher,
+				value: this.#prepareMatcher(reverseMatcher) as ComparisonMatcher,
 				enumerable: true,
 			})
 		})
 
-		Expect.rawMatchers.noArgMatchers.forEach((matcher: RawNoArgMatcher) => {
+		Expect.#rawMatchers.noArgMatchers.forEach((matcher: RawNoArgMatcher) => {
 			const reverseMatcher = matchers.matchersToInverseMap[matcher.name as keyof typeof matchers.matchersToInverseMap]
 			Object.defineProperty(this, matcher.name, {
-				value: this.prepareMatcher(matcher) as NoArgMatcher,
+				value: this.#prepareMatcher(matcher) as NoArgMatcher,
 				enumerable: true,
 			})
 
 			Object.defineProperty(this.not, matcher.name, {
-				value: this.prepareMatcher(reverseMatcher) as NoArgMatcher,
+				value: this.#prepareMatcher(reverseMatcher) as NoArgMatcher,
 				enumerable: true,
 			})
 		})
