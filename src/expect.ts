@@ -19,7 +19,10 @@ class TestAssertionFailed extends Error {
 }
 
 class Expect<ValueType> {
-	static #rawMatchers: RawMatchersMap = { comparisonMatchers: [], noArgMatchers: [] }
+	static #rawMatchers: RawMatchersMap = {
+		comparisonMatchers: [],
+		noArgMatchers: [],
+	}
 
 	value: unknown
 	not: { [key: string]: Matcher }
@@ -29,8 +32,12 @@ class Expect<ValueType> {
 	 * still needs to prepare them on instantiation so they can be used.
 	 */
 	static addMatcher(matcher: RawMatcher) {
-		if (matcher.length == 1) Expect.#rawMatchers.noArgMatchers.push(matcher as RawNoArgMatcher)
+		if (matcher.length === 1) Expect.#rawMatchers.noArgMatchers.push(matcher as RawNoArgMatcher)
 		else Expect.#rawMatchers.comparisonMatchers.push(matcher as RawComparisonMatcher)
+	}
+
+	static #getRawMatchers(): Array<RawMatcher> {
+		return [...Expect.#rawMatchers.comparisonMatchers, ...Expect.#rawMatchers.noArgMatchers]
 	}
 
 	#prepareMatcher(matcher: RawMatcher): Matcher {
@@ -58,12 +65,12 @@ class Expect<ValueType> {
 	#extendWithMatcher(matcher: RawMatcher) {
 		const reverseMatcher = matchers.matchersToInverseMap[matcher.name as keyof typeof matchers.matchersToInverseMap]
 		Object.defineProperty(this, matcher.name, {
-			value: this.#prepareMatcher(matcher) as ComparisonMatcher,
+			value: this.#prepareMatcher(matcher),
 			enumerable: true,
 		})
 
 		Object.defineProperty(this.not, matcher.name, {
-			value: this.#prepareMatcher(reverseMatcher) as ComparisonMatcher,
+			value: this.#prepareMatcher(reverseMatcher),
 			enumerable: true,
 		})
 	}
@@ -72,17 +79,15 @@ class Expect<ValueType> {
 		this.value = value
 		this.not = {}
 
-		Expect.#rawMatchers.comparisonMatchers.forEach((matcher: RawMatcher) => {
-			this.#extendWithMatcher(matcher)
-		})
-
-		Expect.#rawMatchers.noArgMatchers.forEach((matcher: RawNoArgMatcher) => {
+		Expect.#getRawMatchers().forEach((matcher) => {
 			this.#extendWithMatcher(matcher)
 		})
 	}
 }
 
-type ExpectWithMatchers<ValueType> = Expect<ValueType> & { [key: string]: Matcher }
+type ExpectWithMatchers<ValueType> = Expect<ValueType> & {
+	[key: string]: Matcher
+}
 
 export default (() => {
 	Object.entries(matchers.matchers).forEach(([label, matcher]) => {
