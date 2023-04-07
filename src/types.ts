@@ -29,6 +29,8 @@ export interface MatcherReport {
 	message: string
 }
 
+export type MatcherName = string
+
 export type ComparisonMatcher = (value: unknown) => void
 export type NoArgMatcher = () => void
 

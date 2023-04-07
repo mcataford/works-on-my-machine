@@ -8,8 +8,10 @@ import {
 	type RawNoArgMatcher,
 	type RawComparisonMatcher,
 	type RawMatchersMap,
+	type MatcherName,
 } from './types'
-import matchers from './matchers'
+
+import { matchers, matchersToInverseMap } from './matchers'
 
 class TestAssertionFailed extends Error {
 	constructor(message: string) {
@@ -24,8 +26,8 @@ class Expect<ValueType> {
 		noArgMatchers: [],
 	}
 
-	value: unknown
-	not: { [key: string]: Matcher }
+	value: ValueType
+	not: { [key: MatcherName]: Matcher }
 
 	/*
 	 * Registers matchers with Expect. At this point, Expect knows of them, but
@@ -63,11 +65,13 @@ class Expect<ValueType> {
 	}
 
 	#extendWithMatcher(matcher: RawMatcher) {
-		const reverseMatcher = matchers.matchersToInverseMap[matcher.name as keyof typeof matchers.matchersToInverseMap]
+		const reverseMatcher = matchersToInverseMap[matcher.name as keyof typeof matchersToInverseMap]
 		Object.defineProperty(this, matcher.name, {
 			value: this.#prepareMatcher(matcher),
 			enumerable: true,
 		})
+
+		if (!reverseMatcher) return
 
 		Object.defineProperty(this.not, matcher.name, {
 			value: this.#prepareMatcher(reverseMatcher),
@@ -86,11 +90,11 @@ class Expect<ValueType> {
 }
 
 type ExpectWithMatchers<ValueType> = Expect<ValueType> & {
-	[key: string]: Matcher
+	[key: MatcherName]: Matcher
 }
 
 export default (() => {
-	Object.entries(matchers.matchers).forEach(([label, matcher]) => {
+	matchers.forEach((matcher) => {
 		Expect.addMatcher(matcher)
 	})
 
