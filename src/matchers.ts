@@ -11,7 +11,8 @@ import { type MatcherReport } from './types'
 /*
  * Asserts whether value and other are strictly equal.
  */
-function toEqual(value: unknown, other: unknown): MatcherReport {
+function toEqual(value: unknown, other: unknown, negated: boolean = false): MatcherReport {
+	if (negated) return toNotEqual(value, other)
 	const output = { pass: false, message: '' }
 
 	try {
@@ -27,7 +28,9 @@ function toEqual(value: unknown, other: unknown): MatcherReport {
 /*
  * Inverse of toEqual.
  */
-function toNotEqual(value: unknown, other: unknown): MatcherReport {
+function toNotEqual(value: unknown, other: unknown, negated: boolean = false): MatcherReport {
+	if (negated) return toEqual(value, other)
+
 	const out = toEqual(value, other)
 
 	out.pass = !out.pass
@@ -39,7 +42,9 @@ function toNotEqual(value: unknown, other: unknown): MatcherReport {
 /*
  * Asserts whether value and other are the same entity.
  */
-function toBe(value: unknown, other: unknown): MatcherReport {
+function toBe(value: unknown, other: unknown, negated: boolean = false): MatcherReport {
+	if (negated) return toNotBe(value, other)
+
 	const isSame = Object.is(value, other)
 	return { pass: isSame, message: `${value} is not ${other}` }
 }
@@ -47,7 +52,8 @@ function toBe(value: unknown, other: unknown): MatcherReport {
 /*
  * Inverse ot toBe.
  */
-function toNotBe(value: unknown, other: unknown): MatcherReport {
+function toNotBe(value: unknown, other: unknown, negated: boolean = false): MatcherReport {
+	if (negated) return toBe(value, other)
 	const out = toBe(value, other)
 
 	out.pass = !out.pass
@@ -59,7 +65,9 @@ function toNotBe(value: unknown, other: unknown): MatcherReport {
 /*
  * Asserts whether the provided function throws the provided error.
  */
-function toThrow(func: () => unknown): MatcherReport {
+function toThrow(func: () => unknown, negated: boolean = false): MatcherReport {
+	if (negated) return toNotThrow(func)
+
 	const report = { pass: false, message: '' }
 
 	try {
@@ -78,7 +86,9 @@ function toThrow(func: () => unknown): MatcherReport {
 /*
  * Inverse of toThrow.
  */
-function toNotThrow(func: () => unknown): MatcherReport {
+function toNotThrow(func: () => unknown, negated: boolean = false): MatcherReport {
+	if (negated) return toThrow(func)
+
 	const out = toThrow(func)
 
 	out.pass = !out.pass
@@ -87,12 +97,4 @@ function toNotThrow(func: () => unknown): MatcherReport {
 	return out
 }
 
-export const matchers = [toEqual, toBe, toThrow, toNotEqual, toNotBe, toNotThrow]
-export const matchersToInverseMap = {
-	toEqual: toNotEqual,
-	toBe: toNotBe,
-	toThrow: toNotThrow,
-	toNotThrow: toThrow,
-	toNotEqual: toEqual,
-	toNotBe: toBe,
-}
+export default [toEqual, toBe, toThrow, toNotEqual, toNotBe, toNotThrow]

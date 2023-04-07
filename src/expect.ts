@@ -11,7 +11,7 @@ import {
 	type MatcherName,
 } from './types'
 
-import { matchers, matchersToInverseMap } from './matchers'
+import matchers from './matchers'
 
 class TestAssertionFailed extends Error {
 	constructor(message: string) {
@@ -57,10 +57,10 @@ class Expect<ValueType> {
 	 *  Prepares a raw matchers for the current
 	 *  Expect instance.
 	 */
-	#prepareMatcher(matcher: RawMatcher): Matcher {
+	#prepareMatcher(matcher: RawMatcher, negated: boolean = false): Matcher {
 		if (matcher.length === 1) {
 			return (() => {
-				const out = (matcher as RawNoArgMatcher)(this.value)
+				const out = (matcher as RawNoArgMatcher)(this.value, negated)
 
 				if (!out.pass) {
 					throw new TestAssertionFailed(out.message)
@@ -68,7 +68,7 @@ class Expect<ValueType> {
 			}) as NoArgMatcher
 		} else if (matcher.length === 2) {
 			return ((other: unknown) => {
-				const out = (matcher as RawComparisonMatcher)(this.value, other)
+				const out = (matcher as RawComparisonMatcher)(this.value, other, negated)
 
 				if (!out.pass) {
 					throw new TestAssertionFailed(out.message)
@@ -83,16 +83,13 @@ class Expect<ValueType> {
 	 * Adds a matcher to the current Expect instance.
 	 */
 	#extendWithMatcher(matcher: RawMatcher) {
-		const reverseMatcher = matchersToInverseMap[matcher.name as keyof typeof matchersToInverseMap]
 		Object.defineProperty(this, matcher.name, {
 			value: this.#prepareMatcher(matcher),
 			enumerable: true,
 		})
 
-		if (!reverseMatcher) return
-
 		Object.defineProperty(this.not, matcher.name, {
-			value: this.#prepareMatcher(reverseMatcher),
+			value: this.#prepareMatcher(matcher, true),
 			enumerable: true,
 		})
 	}
