@@ -1,9 +1,5 @@
-#!/usr/bin/env node
-
-import { getContext, greenText, redText, exec, splitIntoBatches } from './utils'
-import helpText from './help'
+import { greenText, redText, exec, splitIntoBatches } from './utils'
 import { type Args, type IContext, type TestServer } from './types'
-import parseArgs from './argumentParser'
 import { type Buffer } from 'buffer'
 
 import { promises as fs } from 'fs'
@@ -16,7 +12,7 @@ class UnknownArgumentError extends Error {}
  * Collects test files recursively starting from the provided root
  * path.
  */
-async function collectTests(roots: Array<string>): Promise<Array<string>> {
+export async function collectTests(roots: Array<string>): Promise<Array<string>> {
 	const collectedHere = []
 
 	for (const root of roots) {
@@ -46,7 +42,7 @@ async function collectTests(roots: Array<string>): Promise<Array<string>> {
  * Splits the list of collected test files into `workerCount` batches and starts
  * worker processes.
  */
-async function assignTestsToWorkers(context: IContext, collectedPaths: Array<string>, workerCount: number = 1) {
+export async function assignTestsToWorkers(context: IContext, collectedPaths: Array<string>, workerCount: number = 1) {
 	const batchedCollectedPaths = splitIntoBatches(collectedPaths, workerCount)
 
 	await Promise.all(
@@ -56,7 +52,7 @@ async function assignTestsToWorkers(context: IContext, collectedPaths: Array<str
 	)
 }
 
-async function collectCases(context: IContext, collectedPaths: Array<string>, workerCount: number = 1) {
+export async function collectCases(context: IContext, collectedPaths: Array<string>, workerCount: number = 1) {
 	const batchedCollectedPaths = splitIntoBatches(collectedPaths, workerCount)
 
 	const batchResults = await Promise.all(
@@ -72,7 +68,7 @@ async function collectCases(context: IContext, collectedPaths: Array<string>, wo
 	console.log(greenText(`Collected ${collectedCount} cases`))
 }
 
-function setUpSocket(socketPath: string): TestServer {
+export function setUpSocket(socketPath: string): TestServer {
 	const server: TestServer = net.createServer()
 	server.listen(socketPath, () => {
 		console.log('Listening for workers')
@@ -93,33 +89,4 @@ function setUpSocket(socketPath: string): TestServer {
 	})
 
 	return server
-} /*
- * Logic executed when running the test runner CLI.
- */
-;(async () => {
-	const args = parseArgs(process.argv)
-
-	if (args.help) {
-		console.log(helpText)
-		return
-	}
-
-	const context = getContext(args.runtimePath)
-	let server
-
-	try {
-		server = setUpSocket(context.runnerSocket)
-		const collectedTests = await collectTests(args.targets)
-		await collectCases(context, collectedTests)
-
-		await assignTestsToWorkers(context, collectedTests, args.workers)
-
-		if (server.failure) throw new Error()
-	} catch (e) {
-		console.log(redText('Test run failed'))
-	} finally {
-		server?.close()
-	}
-})().catch((e) => {
-	throw e
-})
+}
