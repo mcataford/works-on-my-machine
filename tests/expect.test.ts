@@ -4,7 +4,7 @@ import { describe, test, expect } from '../src'
 type ArbitraryValue = string | number | boolean
 
 describe('Equality', () => {
-	test.each([1, 'expectations', true])('Equality', (value: unknown) => {
+	test.each([1, 'expectations', true])('Equality (value=%s)', (value: unknown) => {
 		assert.doesNotThrow(() => expect(value).toEqual(value))
 	})
 
@@ -12,7 +12,7 @@ describe('Equality', () => {
 		[1, 2],
 		['expectation', 'something else'],
 		[true, false],
-	])('Equality (failed)', (...pair: Array<unknown>) => {
+	])('Equality (failed - values=%s)', (...pair: Array<unknown>) => {
 		assert.throws(() => expect(pair[0]).toEqual(pair[1]))
 	})
 })

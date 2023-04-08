@@ -32,7 +32,7 @@ Object.defineProperty(test, 'each', {
 	value: function (values: Array<unknown>) {
 		return (label: TestCaseLabel, testCase: TestCaseFunction) => {
 			values.forEach((value: unknown, index: number) => {
-				test(`${label}_${index}`, () => testCase(value))
+				test(label.replace(/%s/g, String(value)), () => testCase(value))
 			})
 		}
 	},

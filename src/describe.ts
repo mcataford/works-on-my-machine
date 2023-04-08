@@ -29,7 +29,7 @@ Object.defineProperty(describe, 'each', {
 	value: function (values: Array<unknown>) {
 		return (label: TestCaseLabel, testGroup: TestCaseGroup) => {
 			values.forEach((value: unknown, index: number) => {
-				describe(`${label}_${index}`, () => testGroup(value))
+				describe(label.replace(/%s/g, String(value)), () => testGroup(value))
 			})
 		}
 	},
