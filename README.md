@@ -14,3 +14,8 @@ constraints:
   `rome`, but keeping it to a minimum);
 - It must be compatible with the general API exposed by Jest and the like, for familiarity;
 - It must use itself for testing.
+
+### Hot takes baked in
+
+`womm` is an opinionated implementation of Typescript/Javascript testing libraries we've all come to get used to. You
+can peek at the opinions baked into this [here](./DESIGN_DECISIONS.md).
