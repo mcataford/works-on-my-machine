@@ -1,29 +1,19 @@
 import assert from 'assert'
-import { describe, test, expect } from '../src/testCaseUtils'
+import { describe, test, expect } from '../src'
+
+type ArbitraryValue = string | number | boolean
 
 describe('Equality', () => {
-	test('Equality (number)', () => {
-		assert.doesNotThrow(() => expect(1).toEqual(1))
+	test.each([1, 'expectations', true])('Equality', (value: unknown) => {
+		assert.doesNotThrow(() => expect(value).toEqual(value))
 	})
 
-	test('Equality (string)', () => {
-		assert.doesNotThrow(() => expect('expectations').toEqual('expectations'))
-	})
-
-	test('Equality (boolean)', () => {
-		assert.doesNotThrow(() => expect(true).toEqual(true))
-	})
-
-	test('Equality (failed - number)', () => {
-		assert.throws(() => expect(1).toEqual(2))
-	})
-
-	test('Equality (failed - string)', () => {
-		assert.throws(() => expect('expectation').toEqual('something else'))
-	})
-
-	test('Equality (failed - boolean)', () => {
-		assert.throws(() => expect(true).toEqual(false))
+	test.each([
+		[1, 2],
+		['expectation', 'something else'],
+		[true, false],
+	])('Equality (failed)', (...pair: Array<unknown>) => {
+		assert.throws(() => expect(pair[0]).toEqual(pair[1]))
 	})
 })
 

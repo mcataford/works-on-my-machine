@@ -1,20 +1,11 @@
 import { promises as fs } from 'fs'
 
-import expect from './expect'
 import { greenText, redText } from './utils'
 import { type TestCaseLabel, type TestCaseFunction, type TestCaseGroup } from './types'
 
-function describe(label: TestCaseLabel, testGroup: TestCaseGroup) {
-	if (process.env.COLLECT) {
-		testGroup()
-		return
-	}
-
-	console.group(greenText(label))
-	testGroup()
-	console.groupEnd()
-}
-
+/*
+ *
+ */
 function test(label: TestCaseLabel, testCase: TestCaseFunction): void {
 	if (process.env.COLLECT) {
 		console.log(label)
@@ -31,6 +22,23 @@ function test(label: TestCaseLabel, testCase: TestCaseFunction): void {
 	}
 }
 
-const it = test
+Object.defineProperty(test, 'each', {
+	value: function (values: Array<unknown>) {
+		return (label: TestCaseLabel, testCase: TestCaseFunction) => {
+			values.forEach((value: unknown, index: number) => {
+				test(`${label}_${index}`, () => testCase(value))
+			})
+		}
+	},
+	enumerable: true,
+})
 
-export { it, test, expect, describe }
+type extendedTest = typeof test & { [key: string]: (...args: Array<unknown>) => extendedTest }
+
+const extTest = test as extendedTest
+
+const it = extTest
+
+export { it }
+
+export default extTest
