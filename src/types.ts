@@ -22,6 +22,7 @@ export interface Args {
 	targets: Array<string>
 	runtimePath: string
 	help: boolean
+	workers: number
 }
 
 export interface MatcherReport {
@@ -44,4 +45,14 @@ export type RawMatcher = RawComparisonMatcher | RawNoArgMatcher | RawNoArgFuncMa
 export interface RawMatchersMap {
 	comparisonMatchers: Array<RawComparisonMatcher>
 	noArgMatchers: Array<RawNoArgMatcher>
+}
+
+interface FlagConfiguration {
+	requiresValue: boolean
+	default: string | boolean | number
+	description: string
+}
+
+export interface FlagConfigurationMap {
+	[key: string]: FlagConfiguration
 }
