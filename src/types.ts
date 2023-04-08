@@ -50,6 +50,7 @@ export interface RawMatchersMap {
 interface FlagConfiguration {
 	requiresValue: boolean
 	default: string | boolean | number
+	description: string
 }
 
 export interface FlagConfigurationMap {

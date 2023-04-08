@@ -1,13 +1,15 @@
 import { type Args, type FlagConfigurationMap } from './types'
 
-const FLAG_CONFIGURATION: Readonly<FlagConfigurationMap> = {
+export const FLAG_CONFIGURATION: Readonly<FlagConfigurationMap> = {
 	workers: {
 		requiresValue: true,
 		default: 1,
+		description: 'Defines up to how many parallel processes should consume tests.',
 	},
 	help: {
 		requiresValue: false,
 		default: false,
+		description: 'Displays the help text.',
 	},
 }
 
