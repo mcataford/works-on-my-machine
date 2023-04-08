@@ -2,7 +2,7 @@
   "name": "works-on-my-machine",
   "description": "A no-dependency test runner",
   "version": "0.0.0",
-  "main": "dist/runner.js",
+  "main": "dist/cli.js",
   "license": "MIT",
   "packageManager": "yarn@3.5.0",
   "files": [
@@ -16,7 +16,7 @@
     "prebuild": "rm -rf dist",
     "lint": "rome format src tests && rome check src tests",
     "lint:fix": "rome format src tests --write && rome check src tests --apply",
-    "test": "ts-node ./src/runner.ts ./tests",
+    "test": "ts-node ./src/cli.ts ./tests",
     "build": "tsc --project ."
   },
   "devDependencies": {
