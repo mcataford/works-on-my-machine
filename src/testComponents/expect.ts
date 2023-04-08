@@ -9,7 +9,7 @@ import {
 	type RawComparisonMatcher,
 	type RawMatchersMap,
 	type MatcherName,
-} from './types'
+} from '../types'
 
 import matchers from './matchers'
 

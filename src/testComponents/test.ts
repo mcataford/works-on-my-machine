@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs'
 
-import { greenText, redText } from './utils'
-import { type TestCaseLabel, type TestCaseFunction, type TestCaseGroup } from './types'
+import { greenText, redText } from '../utils'
+import { type TestCaseLabel, type TestCaseFunction, type TestCaseGroup } from '../types'
 
 /*
  * `test` defines a single test case.

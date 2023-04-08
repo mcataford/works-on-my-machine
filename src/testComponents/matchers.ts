@@ -6,7 +6,7 @@
  */
 import assert from 'assert'
 
-import { type MatcherReport } from './types'
+import { type MatcherReport } from '../types'
 
 /*
  * Asserts whether value and other are strictly equal.
