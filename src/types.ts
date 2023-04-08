@@ -46,3 +46,12 @@ export interface RawMatchersMap {
 	comparisonMatchers: Array<RawComparisonMatcher>
 	noArgMatchers: Array<RawNoArgMatcher>
 }
+
+interface FlagConfiguration {
+	requiresValue: boolean
+	default: string | boolean | number
+}
+
+export interface FlagConfigurationMap {
+	[key: string]: FlagConfiguration
+}
