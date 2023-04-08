@@ -4,7 +4,13 @@ import { greenText, redText } from './utils'
 import { type TestCaseLabel, type TestCaseFunction, type TestCaseGroup } from './types'
 
 /*
+ * `test` defines a single test case.
  *
+ * ```
+ * test('My test', () => {
+ *    // Assert things.
+ * })
+ * ```
  */
 function test(label: TestCaseLabel, testCase: TestCaseFunction): void {
 	if (process.env.COLLECT) {
@@ -37,6 +43,9 @@ type extendedTest = typeof test & { [key: string]: (...args: Array<unknown>) => 
 
 const extTest = test as extendedTest
 
+/*
+ * `it` is an alias of `test`.
+ */
 const it = extTest
 
 export { it }
