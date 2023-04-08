@@ -118,10 +118,20 @@ function parseArgs(args: Array<string>): Args {
 		},
 	)
 
+	const longFlagsWithValues = longFlags
+		.filter((flag) => flag.match(/--.*=/))
+		.map((flag) => flag.replace('--', '').split('='))
+		.reduce((flags, flag) => {
+			flags.set(flag[0], flag[1])
+
+			return flags
+		}, new Map<string, string | boolean | number>())
+
 	return {
 		runtimePath,
 		targets: argsWithoutFlags,
 		help: longFlags.includes('--help') || shortFlags.includes('-h'),
+		workers: Number(longFlagsWithValues.get('workers') ?? 1),
 	}
 } /*
  * Logic executed when running the test runner CLI.
@@ -142,7 +152,7 @@ function parseArgs(args: Array<string>): Args {
 		const collectedTests = await collectTests(args.targets)
 		await collectCases(context, collectedTests)
 
-		await assignTestsToWorkers(context, collectedTests)
+		await assignTestsToWorkers(context, collectedTests, args.workers)
 
 		if (server.failure) throw new Error()
 	} catch (e) {

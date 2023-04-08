@@ -22,6 +22,7 @@ export interface Args {
 	targets: Array<string>
 	runtimePath: string
 	help: boolean
+	workers: number
 }
 
 export interface MatcherReport {
