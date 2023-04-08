@@ -3,11 +3,14 @@
 import { getContext, greenText, redText, exec, splitIntoBatches } from './utils'
 import helpText from './help'
 import { type Args, type IContext, type TestServer } from './types'
+import parseArgs from './argumentParser'
 import { type Buffer } from 'buffer'
 
 import { promises as fs } from 'fs'
 import path from 'path'
 import net from 'net'
+
+class UnknownArgumentError extends Error {}
 
 /*
  * Collects test files recursively starting from the provided root
@@ -90,39 +93,6 @@ function setUpSocket(socketPath: string): TestServer {
 	})
 
 	return server
-}
-
-function parseArgs(args: Array<string>): Args {
-	const [, runtimePath, ...userArgs] = args
-
-	const {
-		argsWithoutFlags,
-		shortFlags,
-		longFlags,
-	}: {
-		argsWithoutFlags: Array<string>
-		longFlags: Array<string>
-		shortFlags: Array<string>
-	} = (userArgs as Array<string>).reduce(
-		(acc, arg: string) => {
-			if (arg.startsWith('--')) acc.longFlags.push(arg)
-			else if (arg.startsWith('-')) acc.shortFlags.push(arg)
-			else acc.argsWithoutFlags.push(arg)
-
-			return acc
-		},
-		{ argsWithoutFlags: [], longFlags: [], shortFlags: [] } as {
-			argsWithoutFlags: Array<string>
-			longFlags: Array<string>
-			shortFlags: Array<string>
-		},
-	)
-
-	return {
-		runtimePath,
-		targets: argsWithoutFlags,
-		help: longFlags.includes('--help') || shortFlags.includes('-h'),
-	}
 } /*
  * Logic executed when running the test runner CLI.
  */
@@ -142,7 +112,7 @@ function parseArgs(args: Array<string>): Args {
 		const collectedTests = await collectTests(args.targets)
 		await collectCases(context, collectedTests)
 
-		await assignTestsToWorkers(context, collectedTests)
+		await assignTestsToWorkers(context, collectedTests, args.workers)
 
 		if (server.failure) throw new Error()
 	} catch (e) {
