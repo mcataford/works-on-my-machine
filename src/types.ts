@@ -48,3 +48,10 @@ interface FlagConfiguration {
 export interface FlagConfigurationMap {
 	[key: string]: FlagConfiguration
 }
+
+export interface WorkerReport {
+	workerId: number
+	pass: boolean
+	returnCode: number | null
+	runtime: number | null
+}

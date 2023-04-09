@@ -3,7 +3,7 @@
 import helpText from './help'
 import parseArgs from './argumentParser'
 import { getContext, redText } from './utils'
-import { collectTests, collectCases, assignTestsToWorkers } from './runner'
+import run from './runner'
 
 /*
  * Logic executed when running the test runner CLI.
@@ -19,10 +19,7 @@ import { collectTests, collectCases, assignTestsToWorkers } from './runner'
 	const context = getContext(args.runtimePath)
 
 	try {
-		const collectedTests = await collectTests(args.targets)
-		await collectCases(context, collectedTests)
-
-		await assignTestsToWorkers(context, collectedTests, args.workers)
+		run(args, context)
 	} catch (e) {
 		console.log(redText('Test run failed'))
 	}

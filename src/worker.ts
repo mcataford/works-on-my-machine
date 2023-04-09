@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import net from 'net'
+import path from 'path'
 
 import { getContext, exec } from './utils'
 
@@ -25,10 +25,23 @@ async function work() {
 
 	const [, workerRuntime, ...assignedTestFiles] = process.argv
 	const context = getContext(workerRuntime)
-	for await (const testFilePath of assignedTestFiles) {
-		const result = await exec(`${context.nodeRuntime} ${testFilePath}`, {})
-		process.send(formatMessage(result.stdout, result.stdout.includes('FAILED')))
-	}
+
+	await Promise.all(
+		assignedTestFiles.map(
+			(testFilePath) =>
+				new Promise((resolve, reject) => {
+					const testRunProcess = exec(context.nodeRuntime, [path.resolve(testFilePath)], { env: { ...process.env } })
+
+					testRunProcess.stdout.on('data', (message) => {
+						process?.send?.(formatMessage(message.toString('utf8').trim(), message.includes('FAILED')))
+					})
+
+					testRunProcess.on('close', (code) => {
+						resolve(code)
+					})
+				}),
+		),
+	)
 }
 
 work().catch((e) => {

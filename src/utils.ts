@@ -3,12 +3,12 @@ import path from 'path'
 import childProcess from 'child_process'
 import { type IContext } from './types'
 
-export const exec = util.promisify(childProcess.exec)
+export const exec = childProcess.spawn //util.promisify(childProcess.exec)
 export const fork = childProcess.fork
 /*
  * Terminal text style
  */
-export function boldText(text: string): string {
+export function boldText(text: string | number): string {
 	return `\x1b[1m${text}\x1b[0m`
 }
 

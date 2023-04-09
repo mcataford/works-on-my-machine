@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node
+
 import net from 'net'
 import { type IContext } from './types'
 import { getContext, exec, greenText } from './utils'
@@ -8,14 +10,26 @@ function formatMessage(results: string, failed: boolean): string {
 }
 
 async function collectCases(context: IContext, collectedPaths: Array<string>): Promise<number> {
-	let collectedCount = 0
-
 	for await (const collectedPath of collectedPaths) {
-		const result = await exec(`COLLECT=1 ${context.nodeRuntime} ${collectedPath}`, {})
-		collectedCount += result.stdout.split('\n').filter((caseLabel) => caseLabel.length > 0).length
+		const collectedCount = await new Promise((resolve, reject) => {
+			const proc = exec(context.nodeRuntime, [collectedPath], { env: { ...process.env, COLLECT: '1' } })
+			let count = 0
+
+			proc.stdout.on('data', (message: string) => {
+				count += message
+					.toString()
+					.split('\n')
+					.filter((caseLabel: string) => caseLabel.length > 0).length
+			})
+
+			proc.on('close', (code: number) => {
+				resolve(count)
+			})
+		})
+		if (process.send) process.send(JSON.stringify({ total: collectedCount }))
 	}
 
-	return collectedCount
+	return 0
 }
 
 /*
@@ -25,8 +39,6 @@ async function work() {
 	const [, workerRuntime, ...assignedTestFiles] = process.argv
 	const context = getContext(workerRuntime)
 	const collectedCount = await collectCases(context, assignedTestFiles)
-
-	console.log(collectedCount)
 }
 
 work().catch((e) => {
