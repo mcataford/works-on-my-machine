@@ -22,7 +22,8 @@ import run from './runner'
 		run(args, context)
 	} catch (e) {
 		console.log(redText('Test run failed'))
+		throw e
 	}
 })().catch((e) => {
-	throw e
+	process.exit(1)
 })

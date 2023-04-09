@@ -133,9 +133,12 @@ async function run(args: Args, context: Context) {
 	)
 	const summary = await assignTestsToWorkers(context, collectedTests, args.workers)
 
+	const hasFailed = Object.values(summary).filter((workerReport) => !workerReport.pass).length > 0
 	performance.mark('run:end')
-	const t = performance.measure('run', 'run:start', 'run:end').duration
-	console.log(`Ran tests in ${boldText(t / 1000)}s`)
+	const overallTime = performance.measure('run', 'run:start', 'run:end').duration
+	console.log(`Ran tests in ${boldText(overallTime / 1000)}s`)
+
+	if (hasFailed) throw new Error('Test run failed')
 }
 
 export default run
