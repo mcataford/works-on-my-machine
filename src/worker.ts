@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node
+
 import net from 'net'
 
 import { getContext, exec } from './utils'
@@ -19,15 +21,14 @@ function formatMessage(results: string, failed: boolean): string {
  * touched by the worker assigned to them.
  */
 async function work() {
+	if (process?.send === undefined) throw Error('No process global found')
+
 	const [, workerRuntime, ...assignedTestFiles] = process.argv
 	const context = getContext(workerRuntime)
-	const socketConnection = net.createConnection(context.runnerSocket, async () => {
-		for await (const testFilePath of assignedTestFiles) {
-			const result = await exec(`${context.nodeRuntime} ${testFilePath}`, {})
-			socketConnection.write(formatMessage(result.stdout, result.stdout.includes('FAILED')))
-		}
-		socketConnection.destroy()
-	})
+	for await (const testFilePath of assignedTestFiles) {
+		const result = await exec(`${context.nodeRuntime} ${testFilePath}`, {})
+		process.send(formatMessage(result.stdout, result.stdout.includes('FAILED')))
+	}
 }
 
 work().catch((e) => {

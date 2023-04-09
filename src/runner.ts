@@ -1,6 +1,5 @@
-import { greenText, redText, exec, splitIntoBatches } from './utils'
-import { type Args, type IContext, type TestServer } from './types'
-import { type Buffer } from 'buffer'
+import { greenText, redText, exec, fork, splitIntoBatches } from './utils'
+import { type Args, type IContext } from './types'
 
 import { promises as fs } from 'fs'
 import path from 'path'
@@ -42,12 +41,28 @@ export async function collectTests(roots: Array<string>): Promise<Array<string>>
  * Splits the list of collected test files into `workerCount` batches and starts
  * worker processes.
  */
-export async function assignTestsToWorkers(context: IContext, collectedPaths: Array<string>, workerCount: number = 1) {
+export async function assignTestsToWorkers(
+	context: IContext,
+	collectedPaths: Array<string>,
+	workerCount: number = 1,
+): Promise<void> {
 	const batchedCollectedPaths = splitIntoBatches(collectedPaths, workerCount)
 
 	await Promise.all(
-		batchedCollectedPaths.map(async (batch) =>
-			exec(`${context.nodeRuntime} ${context.workerRuntime} ${batch.join(' ')}`, {}),
+		batchedCollectedPaths.map(
+			async (batch) =>
+				new Promise((resolve, reject) => {
+					const workerProcess = fork(context.workerRuntime, batch, {})
+
+					workerProcess.on('close', (code) => {
+						resolve(code)
+					})
+
+					workerProcess.on('message', (message: string) => {
+						const workerReport: { results: string; failed: boolean } = JSON.parse(message)
+						console.log(workerReport.results)
+					})
+				}),
 		),
 	)
 }
@@ -66,27 +81,4 @@ export async function collectCases(context: IContext, collectedPaths: Array<stri
 	}, 0)
 
 	console.log(greenText(`Collected ${collectedCount} cases`))
-}
-
-export function setUpSocket(socketPath: string): TestServer {
-	const server: TestServer = net.createServer()
-	server.listen(socketPath, () => {
-		console.log('Listening for workers')
-		server.workersRegistered = 0
-	})
-
-	server.on('connection', (s) => {
-		const workerId = server.workersRegistered
-		server.workersRegistered = (server.workersRegistered ?? 0) + 1
-		console.log(`Worker ${workerId} registered.`)
-
-		s.on('data', (rawMessage: Buffer) => {
-			const workerReport: { results: string; failed: boolean } = JSON.parse(rawMessage.toString('utf8'))
-			console.log(workerReport.results)
-
-			if (workerReport.failed) server.failure = true
-		})
-	})
-
-	return server
 }

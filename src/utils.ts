@@ -4,7 +4,7 @@ import childProcess from 'child_process'
 import { type IContext } from './types'
 
 export const exec = util.promisify(childProcess.exec)
-
+export const fork = childProcess.fork
 /*
  * Terminal text style
  */
@@ -37,7 +37,6 @@ export function getContext(runnerPath: string): IContext {
 		runnerRuntime: runnerPath,
 		collectorRuntime: path.join(installDirectory, `collector${runnerExtension}`),
 		nodeRuntime,
-		runnerSocket: '/tmp/womm.sock',
 	}
 }
 
