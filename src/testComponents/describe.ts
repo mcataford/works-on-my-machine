@@ -20,9 +20,8 @@ function describe(label: TestCaseLabel, testGroup: TestCaseGroup) {
 		return
 	}
 
-	console.group(greenText(label))
+	console.log(greenText(label))
 	testGroup()
-	console.groupEnd()
 }
 
 Object.defineProperty(describe, 'each', {

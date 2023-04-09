@@ -1,22 +1,21 @@
 import util from 'util'
 import path from 'path'
 import childProcess from 'child_process'
-import { type IContext } from './types'
-
-export const exec = util.promisify(childProcess.exec)
+import { type Context } from './types'
+import { type Buffer } from 'buffer'
 
 /*
  * Terminal text style
  */
-export function boldText(text: string): string {
+export function boldText(text: string | number): string {
 	return `\x1b[1m${text}\x1b[0m`
 }
 
-export function greenText(text: string): string {
+export function greenText(text: string | number): string {
 	return `\x1b[32m${text}\x1b[0m`
 }
 
-export function redText(text: string): string {
+export function redText(text: string | number): string {
 	return `\x1b[31m${text}\x1b[0m`
 }
 
@@ -26,7 +25,7 @@ export function redText(text: string): string {
  * `process.argv[1]`, which will allow all the other paths
  * to be set properly.
  */
-export function getContext(runnerPath: string): IContext {
+export function getContext(runnerPath: string): Context {
 	const installDirectory = path.dirname(runnerPath)
 	const runnerExtension = path.extname(runnerPath)
 	// TODO: We probably don't need this if we transform TS to JS before execution.
@@ -37,7 +36,6 @@ export function getContext(runnerPath: string): IContext {
 		runnerRuntime: runnerPath,
 		collectorRuntime: path.join(installDirectory, `collector${runnerExtension}`),
 		nodeRuntime,
-		runnerSocket: '/tmp/womm.sock',
 	}
 }
 
@@ -60,4 +58,33 @@ export function splitIntoBatches<T>(data: Array<T>, desiredBatchCount: number = 
 
 		return acc
 	}, [] as Array<Array<T>>)
+}
+
+export function forkWorker(
+	runtime: string,
+	args: Array<string>,
+	{ onClose, onMessage }: { onClose: (code: number) => void; onMessage: (message: string) => void },
+): childProcess.ChildProcess {
+	const workerProcess = childProcess.fork(runtime, args, {})
+	workerProcess.on('message', onMessage)
+	workerProcess.on('close', onClose)
+	return workerProcess
+}
+
+export function spawnProcess(
+	command: string,
+	args: Array<string>,
+	{
+		onStdoutData,
+		onClose,
+		extraEnv,
+	}: { onStdoutData: (message: string) => void; onClose: (code: number) => void; extraEnv?: { [key: string]: string } },
+): childProcess.ChildProcess {
+	const spawnedProcess = childProcess.spawn(command, args, { env: { ...process.env, ...(extraEnv ?? {}) } })
+
+	spawnedProcess.stdout.on('data', (message: Buffer) => onStdoutData(message.toString('utf8')))
+
+	spawnedProcess.on('close', onClose)
+
+	return spawnedProcess
 }
