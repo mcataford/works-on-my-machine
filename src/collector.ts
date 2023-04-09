@@ -4,14 +4,10 @@ import net from 'net'
 import { type IContext } from './types'
 import { getContext, exec, greenText } from './utils'
 
-// TODO: What should be message protocol / format be?
-function formatMessage(results: string, failed: boolean): string {
-	return JSON.stringify({ results, failed })
-}
-
 async function collectCases(context: IContext, collectedPaths: Array<string>): Promise<number> {
+	let totalCases = 0
 	for await (const collectedPath of collectedPaths) {
-		const collectedCount = await new Promise((resolve, reject) => {
+		const collectedCount = await new Promise<number>((resolve, reject) => {
 			const proc = exec(context.nodeRuntime, [collectedPath], { env: { ...process.env, COLLECT: '1' } })
 			let count = 0
 
@@ -26,10 +22,11 @@ async function collectCases(context: IContext, collectedPaths: Array<string>): P
 				resolve(count)
 			})
 		})
-		if (process.send) process.send(JSON.stringify({ total: collectedCount }))
+
+		totalCases += collectedCount
 	}
 
-	return 0
+	return totalCases
 }
 
 /*
@@ -39,6 +36,7 @@ async function work() {
 	const [, workerRuntime, ...assignedTestFiles] = process.argv
 	const context = getContext(workerRuntime)
 	const collectedCount = await collectCases(context, assignedTestFiles)
+	if (process.send) process.send(JSON.stringify({ total: collectedCount }))
 }
 
 work().catch((e) => {
