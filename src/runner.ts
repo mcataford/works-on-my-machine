@@ -1,5 +1,5 @@
-import { greenText, redText, boldText, exec, fork, splitIntoBatches } from './utils'
-import { type Args, type IContext, type WorkerReport } from './types'
+import { forkWorker, greenText, redText, boldText, splitIntoBatches } from './utils'
+import { type Args, type Context, type WorkerReport, type CollectorReport } from './types'
 
 import { promises as fs } from 'fs'
 import path from 'path'
@@ -35,29 +35,21 @@ async function collectTests(roots: Array<string>): Promise<Array<string>> {
 	return collectedHere
 }
 
-interface CollectorReport {
-	totalCases: number
-}
-
-async function collectCases(
-	context: IContext,
-	collectedPaths: Array<string>,
-	workerCount: number = 1,
-): Promise<number> {
+async function collectCases(context: Context, collectedPaths: Array<string>, workerCount: number = 1): Promise<number> {
 	const batchedCollectedPaths = splitIntoBatches(collectedPaths, workerCount)
 
 	const batchResults = await Promise.all(
 		batchedCollectedPaths.map(
 			(batch): Promise<CollectorReport> =>
 				new Promise((resolve, reject) => {
-					const childProcess = fork(context.collectorRuntime, batch, {})
 					const collectorReport: CollectorReport = { totalCases: 0 }
-					childProcess.on('message', (message: string) => {
-						collectorReport.totalCases += JSON.parse(message).total
-					})
-
-					childProcess.on('close', (code) => {
-						resolve(collectorReport)
+					forkWorker(context.collectorRuntime, batch, {
+						onClose: (code) => {
+							resolve(collectorReport)
+						},
+						onMessage: (message: string) => {
+							collectorReport.totalCases += JSON.parse(message).total
+						},
 					})
 				}),
 		),
@@ -75,7 +67,7 @@ async function collectCases(
  * worker processes.
  */
 async function assignTestsToWorkers(
-	context: IContext,
+	context: Context,
 	collectedPaths: Array<string>,
 	workerCount: number = 1,
 ): Promise<{ [key: number]: WorkerReport }> {
@@ -92,25 +84,24 @@ async function assignTestsToWorkers(
 						returnCode: null,
 						runtime: null,
 					}
-					const workerProcess = fork(context.workerRuntime, batch, {})
+					const workerProcess = forkWorker(context.workerRuntime, batch, {
+						onClose: (code) => {
+							performance.mark(`worker-${index}:end`)
+							const runtimePerf = performance.measure(
+								`worker-${index}:runtime`,
+								`worker-${index}:start`,
+								`worker-${index}:end`,
+							)
+							workerReport.returnCode = code
+							workerReport.runtime = runtimePerf.duration
+							resolve(workerReport)
+						},
+						onMessage: (message: string) => {
+							const workerMessage: { results: string; failed: boolean } = JSON.parse(message)
+							if (workerMessage.failed) workerReport.pass = false
 
-					workerProcess.on('close', (code) => {
-						performance.mark(`worker-${index}:end`)
-						const runtimePerf = performance.measure(
-							`worker-${index}:runtime`,
-							`worker-${index}:start`,
-							`worker-${index}:end`,
-						)
-						workerReport.returnCode = code
-						workerReport.runtime = runtimePerf.duration
-						resolve(workerReport)
-					})
-
-					workerProcess.on('message', (message: string) => {
-						const workerMessage: { results: string; failed: boolean } = JSON.parse(message)
-						if (workerMessage.failed) workerReport.pass = false
-
-						console.log(workerMessage.results)
+							console.log(workerMessage.results)
+						},
 					})
 				}),
 		),
@@ -122,7 +113,7 @@ async function assignTestsToWorkers(
 	}, {} as { [key: number]: WorkerReport })
 }
 
-async function run(args: Args, context: IContext) {
+async function run(args: Args, context: Context) {
 	performance.mark('run:start')
 	performance.mark('test-collect:start')
 	const collectedTests = await collectTests(args.targets)

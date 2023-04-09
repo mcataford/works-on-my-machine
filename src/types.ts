@@ -3,7 +3,7 @@ export type TestFilePath = string
 export type TestCaseFunction = (...args: Array<unknown>) => void
 export type TestCaseGroup = (...args: Array<unknown>) => void
 
-export interface IContext {
+export interface Context {
 	workerRuntime: string
 	runnerRuntime: string
 	collectorRuntime: string
@@ -54,4 +54,8 @@ export interface WorkerReport {
 	pass: boolean
 	returnCode: number | null
 	runtime: number | null
+}
+
+export interface CollectorReport {
+	totalCases: number
 }

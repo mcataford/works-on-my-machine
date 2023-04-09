@@ -2,7 +2,7 @@
 
 import path from 'path'
 
-import { getContext, exec } from './utils'
+import { getContext, spawnProcess } from './utils'
 
 // TODO: What should be message protocol / format be?
 function formatMessage(results: string, failed: boolean): string {
@@ -30,14 +30,13 @@ async function work() {
 		assignedTestFiles.map(
 			(testFilePath) =>
 				new Promise((resolve, reject) => {
-					const testRunProcess = exec(context.nodeRuntime, [path.resolve(testFilePath)], { env: { ...process.env } })
-
-					testRunProcess.stdout.on('data', (message) => {
-						process?.send?.(formatMessage(message.toString('utf8').trim(), message.includes('FAILED')))
-					})
-
-					testRunProcess.on('close', (code) => {
-						resolve(code)
+					spawnProcess(context.nodeRuntime, [path.resolve(testFilePath)], {
+						onClose: (code) => {
+							resolve(code)
+						},
+						onStdoutData: (message) => {
+							process?.send?.(formatMessage(message.trim(), message.includes('FAILED')))
+						},
 					})
 				}),
 		),

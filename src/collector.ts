@@ -1,25 +1,25 @@
 #!/usr/bin/env ts-node
 
-import net from 'net'
-import { type IContext } from './types'
-import { getContext, exec, greenText } from './utils'
+import { type Context } from './types'
+import { getContext, spawnProcess } from './utils'
 
-async function collectCases(context: IContext, collectedPaths: Array<string>): Promise<number> {
+async function collectCases(context: Context, collectedPaths: Array<string>): Promise<number> {
 	let totalCases = 0
 	for await (const collectedPath of collectedPaths) {
 		const collectedCount = await new Promise<number>((resolve, reject) => {
-			const proc = exec(context.nodeRuntime, [collectedPath], { env: { ...process.env, COLLECT: '1' } })
 			let count = 0
+			spawnProcess(context.nodeRuntime, [collectedPath], {
+				extraEnv: { COLLECT: '1' },
 
-			proc.stdout.on('data', (message: string) => {
-				count += message
-					.toString()
-					.split('\n')
-					.filter((caseLabel: string) => caseLabel.length > 0).length
-			})
-
-			proc.on('close', (code: number) => {
-				resolve(count)
+				onClose: (code) => {
+					resolve(count)
+				},
+				onStdoutData: (message) => {
+					count += message
+						.toString()
+						.split('\n')
+						.filter((caseLabel: string) => caseLabel.length > 0).length
+				},
 			})
 		})
 
