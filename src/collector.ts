@@ -15,10 +15,7 @@ async function collectCases(context: Context, collectedPaths: Array<string>): Pr
 					resolve(count)
 				},
 				onStdoutData: (message) => {
-					count += message
-						.toString()
-						.split('\n')
-						.filter((caseLabel: string) => caseLabel.length > 0).length
+					count += message.split('\n').filter((caseLabel: string) => caseLabel.length > 0).length
 				},
 			})
 		})
