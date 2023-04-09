@@ -1,18 +1,15 @@
-import { greenText, redText, exec, splitIntoBatches } from './utils'
-import { type Args, type IContext, type TestServer } from './types'
-import { type Buffer } from 'buffer'
+import { forkWorker, greenText, redText, boldText, splitIntoBatches } from './utils'
+import { type Args, type Context, type WorkerReport, type CollectorReport } from './types'
 
 import { promises as fs } from 'fs'
 import path from 'path'
-import net from 'net'
-
-class UnknownArgumentError extends Error {}
+import { performance } from 'perf_hooks'
 
 /*
  * Collects test files recursively starting from the provided root
  * path.
  */
-export async function collectTests(roots: Array<string>): Promise<Array<string>> {
+async function collectTests(roots: Array<string>): Promise<Array<string>> {
 	const collectedHere = []
 
 	for (const root of roots) {
@@ -38,55 +35,110 @@ export async function collectTests(roots: Array<string>): Promise<Array<string>>
 	return collectedHere
 }
 
-/*
- * Splits the list of collected test files into `workerCount` batches and starts
- * worker processes.
- */
-export async function assignTestsToWorkers(context: IContext, collectedPaths: Array<string>, workerCount: number = 1) {
-	const batchedCollectedPaths = splitIntoBatches(collectedPaths, workerCount)
-
-	await Promise.all(
-		batchedCollectedPaths.map(async (batch) =>
-			exec(`${context.nodeRuntime} ${context.workerRuntime} ${batch.join(' ')}`, {}),
-		),
-	)
-}
-
-export async function collectCases(context: IContext, collectedPaths: Array<string>, workerCount: number = 1) {
+async function collectCases(context: Context, collectedPaths: Array<string>, workerCount: number = 1): Promise<number> {
 	const batchedCollectedPaths = splitIntoBatches(collectedPaths, workerCount)
 
 	const batchResults = await Promise.all(
-		batchedCollectedPaths.map(async (batch) =>
-			exec(`${context.nodeRuntime} ${context.collectorRuntime} ${batch.join(' ')}`, {}),
+		batchedCollectedPaths.map(
+			(batch): Promise<CollectorReport> =>
+				new Promise((resolve, reject) => {
+					const collectorReport: CollectorReport = { totalCases: 0 }
+					forkWorker(context.collectorRuntime, batch, {
+						onClose: (code) => {
+							resolve(collectorReport)
+						},
+						onMessage: (message: string) => {
+							collectorReport.totalCases += JSON.parse(message).total
+						},
+					})
+				}),
 		),
 	)
 
 	const collectedCount = batchResults.reduce((total, batchResult) => {
-		return total + parseInt(batchResult.stdout)
+		return total + batchResult.totalCases
 	}, 0)
 
-	console.log(greenText(`Collected ${collectedCount} cases`))
+	return collectedCount
 }
 
-export function setUpSocket(socketPath: string): TestServer {
-	const server: TestServer = net.createServer()
-	server.listen(socketPath, () => {
-		console.log('Listening for workers')
-		server.workersRegistered = 0
-	})
+/*
+ * Splits the list of collected test files into `workerCount` batches and starts
+ * worker processes.
+ */
+async function assignTestsToWorkers(
+	context: Context,
+	collectedPaths: Array<string>,
+	workerCount: number = 1,
+): Promise<{ [key: number]: WorkerReport }> {
+	const batchedCollectedPaths = splitIntoBatches(collectedPaths, workerCount)
 
-	server.on('connection', (s) => {
-		const workerId = server.workersRegistered
-		server.workersRegistered = (server.workersRegistered ?? 0) + 1
-		console.log(`Worker ${workerId} registered.`)
+	const reports = await Promise.all(
+		batchedCollectedPaths.map(
+			async (batch, index): Promise<WorkerReport> =>
+				new Promise((resolve, reject) => {
+					performance.mark(`worker-${index}:start`)
+					const workerReport: WorkerReport = {
+						workerId: index,
+						pass: true,
+						returnCode: null,
+						runtime: null,
+					}
+					const workerProcess = forkWorker(context.workerRuntime, batch, {
+						onClose: (code) => {
+							performance.mark(`worker-${index}:end`)
+							const runtimePerf = performance.measure(
+								`worker-${index}:runtime`,
+								`worker-${index}:start`,
+								`worker-${index}:end`,
+							)
+							workerReport.returnCode = code
+							workerReport.runtime = runtimePerf.duration
+							resolve(workerReport)
+						},
+						onMessage: (message: string) => {
+							const workerMessage: { results: string; failed: boolean } = JSON.parse(message)
+							if (workerMessage.failed) workerReport.pass = false
 
-		s.on('data', (rawMessage: Buffer) => {
-			const workerReport: { results: string; failed: boolean } = JSON.parse(rawMessage.toString('utf8'))
-			console.log(workerReport.results)
+							console.log(workerMessage.results)
+						},
+					})
+				}),
+		),
+	)
 
-			if (workerReport.failed) server.failure = true
-		})
-	})
-
-	return server
+	return reports.reduce((summary, report) => {
+		summary[report.workerId] = report
+		return summary
+	}, {} as { [key: number]: WorkerReport })
 }
+
+async function run(args: Args, context: Context) {
+	performance.mark('run:start')
+	performance.mark('test-collect:start')
+	const collectedTests = await collectTests(args.targets)
+	performance.mark('test-collect:end')
+	const testCollectTime = performance.measure('test-collect', 'test-collect:start', 'test-collect:end').duration
+
+	console.log(
+		`Collected ${boldText(collectedTests.length)} test files in ${boldText((testCollectTime / 1000).toFixed(3))}s`,
+	)
+
+	performance.mark('case-collect:start')
+	const collectedCaseCount = await collectCases(context, collectedTests)
+	performance.mark('case-collect:end')
+	const caseCollectTime = performance.measure('case-collect', 'case-collect:start', 'case-collect:end').duration
+	console.log(
+		`Collected ${boldText(collectedCaseCount)} test files in ${boldText((caseCollectTime / 1000).toFixed(3))}s`,
+	)
+	const summary = await assignTestsToWorkers(context, collectedTests, args.workers)
+
+	const hasFailed = Object.values(summary).filter((workerReport) => !workerReport.pass).length > 0
+	performance.mark('run:end')
+	const overallTime = performance.measure('run', 'run:start', 'run:end').duration
+	console.log(`Ran tests in ${boldText(overallTime / 1000)}s`)
+
+	if (hasFailed) throw new Error('Test run failed')
+}
+
+export default run

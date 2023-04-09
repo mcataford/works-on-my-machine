@@ -1,21 +1,13 @@
-import { type Server } from 'net'
-
 export type TestCaseLabel = string
 export type TestFilePath = string
 export type TestCaseFunction = (...args: Array<unknown>) => void
 export type TestCaseGroup = (...args: Array<unknown>) => void
 
-export interface TestServer extends Server {
-	failure?: boolean
-	workersRegistered?: number
-}
-
-export interface IContext {
+export interface Context {
 	workerRuntime: string
 	runnerRuntime: string
 	collectorRuntime: string
 	nodeRuntime: 'ts-node' | 'node'
-	runnerSocket: string
 }
 
 export interface Args {
@@ -55,4 +47,15 @@ interface FlagConfiguration {
 
 export interface FlagConfigurationMap {
 	[key: string]: FlagConfiguration
+}
+
+export interface WorkerReport {
+	workerId: number
+	pass: boolean
+	returnCode: number | null
+	runtime: number | null
+}
+
+export interface CollectorReport {
+	totalCases: number
 }

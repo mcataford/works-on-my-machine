@@ -1,6 +1,8 @@
-import net from 'net'
+#!/usr/bin/env ts-node
 
-import { getContext, exec } from './utils'
+import path from 'path'
+
+import { getContext, spawnProcess } from './utils'
 
 // TODO: What should be message protocol / format be?
 function formatMessage(results: string, failed: boolean): string {
@@ -19,15 +21,26 @@ function formatMessage(results: string, failed: boolean): string {
  * touched by the worker assigned to them.
  */
 async function work() {
+	if (process?.send === undefined) throw Error('No process global found')
+
 	const [, workerRuntime, ...assignedTestFiles] = process.argv
 	const context = getContext(workerRuntime)
-	const socketConnection = net.createConnection(context.runnerSocket, async () => {
-		for await (const testFilePath of assignedTestFiles) {
-			const result = await exec(`${context.nodeRuntime} ${testFilePath}`, {})
-			socketConnection.write(formatMessage(result.stdout, result.stdout.includes('FAILED')))
-		}
-		socketConnection.destroy()
-	})
+
+	await Promise.all(
+		assignedTestFiles.map(
+			(testFilePath) =>
+				new Promise((resolve, reject) => {
+					spawnProcess(context.nodeRuntime, [path.resolve(testFilePath)], {
+						onClose: (code) => {
+							resolve(code)
+						},
+						onStdoutData: (message) => {
+							process?.send?.(formatMessage(message.trim(), message.includes('FAILED')))
+						},
+					})
+				}),
+		),
+	)
 }
 
 work().catch((e) => {
