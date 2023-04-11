@@ -26,7 +26,7 @@ async function work() {
 	const [, workerRuntime, ...assignedTestFiles] = process.argv
 	const context = getContext(workerRuntime, tsMode)
 
-	const extraArgs = []
+	const extraArgs: Array<string> = []
 
 	if (context.ts) extraArgs.push('--transpile-only')
 

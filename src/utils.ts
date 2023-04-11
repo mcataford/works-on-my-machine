@@ -11,6 +11,10 @@ export function boldText(text: string | number): string {
 	return `\x1b[1m${text}\x1b[0m`
 }
 
+export function yellowText(text: string | number): string {
+	return `\x1b[33m${text}\x1b[0m`
+}
+
 export function greenText(text: string | number): string {
 	return `\x1b[32m${text}\x1b[0m`
 }
@@ -26,7 +30,12 @@ export function redText(text: string | number): string {
  * If ts-node is not installed, this throws.
  */
 export function assertTsNodeInstall() {
-	require.resolve('ts-node')
+	try {
+		require.resolve('ts-node')
+	} catch (e) {
+		console.log(redText('Cannot use --ts without also having ts-node installed.'))
+		throw e
+	}
 }
 
 /*
@@ -35,7 +44,7 @@ export function assertTsNodeInstall() {
  * `process.argv[1]`, which will allow all the other paths
  * to be set properly.
  */
-export function getContext(runnerPath: string, ts?: boolean): Context {
+export function getContext(runnerPath: string, ts: boolean = false): Context {
 	const resolvedRunnerPath = require.resolve(runnerPath)
 	const installDirectory = path.dirname(resolvedRunnerPath)
 	const runnerExtension = path.extname(resolvedRunnerPath)
@@ -47,6 +56,7 @@ export function getContext(runnerPath: string, ts?: boolean): Context {
 		runnerRuntime: runnerPath,
 		collectorRuntime: path.join(installDirectory, `collector${runnerExtension}`),
 		nodeRuntime,
+		ts,
 	}
 }
 

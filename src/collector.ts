@@ -4,7 +4,7 @@ import { type Context } from './types'
 import { getContext, spawnProcess } from './utils'
 
 async function collectCases(context: Context, collectedPaths: Array<string>): Promise<number> {
-	const extraArgs = []
+	const extraArgs: Array<string> = []
 
 	if (context.ts) extraArgs.push('--transpile-only')
 

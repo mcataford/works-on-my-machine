@@ -8,6 +8,7 @@ export interface Context {
 	runnerRuntime: string
 	collectorRuntime: string
 	nodeRuntime: 'ts-node' | 'node'
+	ts: boolean
 }
 
 export interface Args {
