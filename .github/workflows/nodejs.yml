@@ -26,7 +26,7 @@ jobs:
         path: .yarn
         key: ${{ runner.os }}-build-${{env.cache-name}}-${{ hashFiles('**/yarn.lock') }}-node-${{ matrix.node-version }}
     - if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
-      run: yarn
+      run: corepack enable && yarn
 
   lint:
     runs-on: ubuntu-latest
@@ -45,7 +45,7 @@ jobs:
         path: .yarn
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}-node-18
     - run: |
-        yarn
+        corepack enable && yarn
         yarn lint
   test:
     runs-on: ubuntu-latest
@@ -69,8 +69,8 @@ jobs:
         path: .yarn
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}-node-${{ matrix.node-version }}
     - run: |
-        yarn
-        yarn test --workers=2
+        corepack enable && yarn
+        yarn test --workers=2 --ts
   
   build:
     runs-on: ubuntu-latest
@@ -93,5 +93,5 @@ jobs:
         path: .yarn
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}-node-${{ matrix.node-version }}
     - run: |
-        yarn
+        corepack enable && yarn
         yarn build
