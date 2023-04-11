@@ -4,11 +4,17 @@ import { type Context } from './types'
 import { getContext, spawnProcess } from './utils'
 
 async function collectCases(context: Context, collectedPaths: Array<string>): Promise<number> {
+	const extraArgs: Array<string> = []
+
+	if (context.ts) extraArgs.push('--transpile-only')
+
+	const runtime = context.ts ? 'ts-node' : 'node'
+
 	let totalCases = 0
 	for await (const collectedPath of collectedPaths) {
 		const collectedCount = await new Promise<number>((resolve, reject) => {
 			let count = 0
-			spawnProcess(context.nodeRuntime, [collectedPath], {
+			spawnProcess(runtime, [...extraArgs, collectedPath], {
 				extraEnv: { COLLECT: '1' },
 
 				onClose: (code) => {
@@ -31,7 +37,9 @@ async function collectCases(context: Context, collectedPaths: Array<string>): Pr
  */
 async function work() {
 	const [, workerRuntime, ...assignedTestFiles] = process.argv
-	const context = getContext(workerRuntime)
+	const tsMode = Boolean(process.env.TS === '1')
+
+	const context = getContext(workerRuntime, tsMode)
 	const collectedCount = await collectCases(context, assignedTestFiles)
 	if (process.send) process.send(JSON.stringify({ total: collectedCount }))
 }

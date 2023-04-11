@@ -262,7 +262,7 @@ __metadata:
     ts-node: ^10.9.1
     typescript: ^4.0.0
   bin:
-    womm: dist/runner.js
+    womm: dist/cli.js
   languageName: unknown
   linkType: soft
 

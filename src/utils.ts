@@ -11,6 +11,10 @@ export function boldText(text: string | number): string {
 	return `\x1b[1m${text}\x1b[0m`
 }
 
+export function yellowText(text: string | number): string {
+	return `\x1b[33m${text}\x1b[0m`
+}
+
 export function greenText(text: string | number): string {
 	return `\x1b[32m${text}\x1b[0m`
 }
@@ -20,22 +24,39 @@ export function redText(text: string | number): string {
 }
 
 /*
+ * To support typescript source directly, womm uses ts-node in
+ * workers to execute test files.
+ *
+ * If ts-node is not installed, this throws.
+ */
+export function assertTsNodeInstall() {
+	try {
+		require.resolve('ts-node')
+	} catch (e) {
+		console.log(redText('Cannot use --ts without also having ts-node installed.'))
+		throw e
+	}
+}
+
+/*
  * Generates a context object that contains general information
  * about the test runner. The parameter here should always be
  * `process.argv[1]`, which will allow all the other paths
  * to be set properly.
  */
-export function getContext(runnerPath: string): Context {
-	const installDirectory = path.dirname(runnerPath)
-	const runnerExtension = path.extname(runnerPath)
+export function getContext(runnerPath: string, ts: boolean = false): Context {
+	const resolvedRunnerPath = require.resolve(runnerPath)
+	const installDirectory = path.dirname(resolvedRunnerPath)
+	const runnerExtension = path.extname(resolvedRunnerPath)
 	// TODO: We probably don't need this if we transform TS to JS before execution.
-	const nodeRuntime = runnerExtension === '.ts' ? 'ts-node' : 'node'
+	const nodeRuntime = ts ? 'ts-node' : 'node'
 
 	return {
 		workerRuntime: path.join(installDirectory, `worker${runnerExtension}`),
 		runnerRuntime: runnerPath,
 		collectorRuntime: path.join(installDirectory, `collector${runnerExtension}`),
 		nodeRuntime,
+		ts,
 	}
 }
 
@@ -63,9 +84,13 @@ export function splitIntoBatches<T>(data: Array<T>, desiredBatchCount: number = 
 export function forkWorker(
 	runtime: string,
 	args: Array<string>,
-	{ onClose, onMessage }: { onClose: (code: number) => void; onMessage: (message: string) => void },
+	{
+		onClose,
+		onMessage,
+		extraEnv,
+	}: { onClose: (code: number) => void; onMessage: (message: string) => void; extraEnv?: { [key: string]: string } },
 ): childProcess.ChildProcess {
-	const workerProcess = childProcess.fork(runtime, args, {})
+	const workerProcess = childProcess.fork(runtime, args, { env: { ...process.env, ...(extraEnv ?? {}) } })
 	workerProcess.on('message', onMessage)
 	workerProcess.on('close', onClose)
 	return workerProcess

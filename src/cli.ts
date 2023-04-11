@@ -2,7 +2,7 @@
 
 import helpText from './help'
 import parseArgs from './argumentParser'
-import { getContext, redText } from './utils'
+import { getContext, redText, assertTsNodeInstall } from './utils'
 import run from './runner'
 
 /*
@@ -16,7 +16,9 @@ import run from './runner'
 		return
 	}
 
-	const context = getContext(args.runtimePath)
+	if (args.ts) assertTsNodeInstall()
+
+	const context = getContext(args.runtimePath, args.ts)
 
 	try {
 		run(args, context)

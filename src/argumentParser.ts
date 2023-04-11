@@ -11,6 +11,11 @@ export const FLAG_CONFIGURATION: Readonly<FlagConfigurationMap> = {
 		default: false,
 		description: 'Displays the help text.',
 	},
+	ts: {
+		requiresValue: false,
+		default: false,
+		description: 'Use ts-node to run tests (enables typescript support)',
+	},
 }
 
 class MalformedArgumentError extends Error {}
@@ -63,6 +68,7 @@ function parseArgs(args: Array<string>): Args {
 		targets: argsWithoutFlags ?? [],
 		help: Boolean(parsedFlags.get('help') ?? FLAG_CONFIGURATION['help'].default),
 		workers: Number(parsedFlags.get('workers') ?? FLAG_CONFIGURATION['workers'].default),
+		ts: Boolean(parsedFlags.get('ts') ?? FLAG_CONFIGURATION['ts'].default),
 	}
 }
 
