@@ -20,16 +20,27 @@ export function redText(text: string | number): string {
 }
 
 /*
+ * To support typescript source directly, womm uses ts-node in
+ * workers to execute test files.
+ *
+ * If ts-node is not installed, this throws.
+ */
+export function assertTsNodeInstall() {
+	require.resolve('ts-node')
+}
+
+/*
  * Generates a context object that contains general information
  * about the test runner. The parameter here should always be
  * `process.argv[1]`, which will allow all the other paths
  * to be set properly.
  */
-export function getContext(runnerPath: string): Context {
-	const installDirectory = path.dirname(runnerPath)
-	const runnerExtension = path.extname(runnerPath)
+export function getContext(runnerPath: string, ts?: boolean): Context {
+	const resolvedRunnerPath = require.resolve(runnerPath)
+	const installDirectory = path.dirname(resolvedRunnerPath)
+	const runnerExtension = path.extname(resolvedRunnerPath)
 	// TODO: We probably don't need this if we transform TS to JS before execution.
-	const nodeRuntime = runnerExtension === '.ts' ? 'ts-node' : 'node'
+	const nodeRuntime = ts ? 'ts-node' : 'node'
 
 	return {
 		workerRuntime: path.join(installDirectory, `worker${runnerExtension}`),
@@ -63,9 +74,13 @@ export function splitIntoBatches<T>(data: Array<T>, desiredBatchCount: number = 
 export function forkWorker(
 	runtime: string,
 	args: Array<string>,
-	{ onClose, onMessage }: { onClose: (code: number) => void; onMessage: (message: string) => void },
+	{
+		onClose,
+		onMessage,
+		extraEnv,
+	}: { onClose: (code: number) => void; onMessage: (message: string) => void; extraEnv?: { [key: string]: string } },
 ): childProcess.ChildProcess {
-	const workerProcess = childProcess.fork(runtime, args, {})
+	const workerProcess = childProcess.fork(runtime, args, { env: { ...process.env, ...(extraEnv ?? {}) } })
 	workerProcess.on('message', onMessage)
 	workerProcess.on('close', onClose)
 	return workerProcess

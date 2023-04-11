@@ -15,6 +15,7 @@ export interface Args {
 	runtimePath: string
 	help: boolean
 	workers: number
+	ts: boolean
 }
 
 export interface MatcherReport {
