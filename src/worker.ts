@@ -22,15 +22,21 @@ function formatMessage(results: string, failed: boolean): string {
  */
 async function work() {
 	if (process?.send === undefined) throw Error('No process global found')
-
+	const tsMode = Boolean(process.env.TS === '1')
 	const [, workerRuntime, ...assignedTestFiles] = process.argv
-	const context = getContext(workerRuntime)
+	const context = getContext(workerRuntime, tsMode)
+
+	const extraArgs: Array<string> = []
+
+	if (context.ts) extraArgs.push('--transpile-only')
+
+	const runtime = context.ts ? 'ts-node' : 'node'
 
 	await Promise.all(
 		assignedTestFiles.map(
 			(testFilePath) =>
 				new Promise((resolve, reject) => {
-					spawnProcess(context.nodeRuntime, [path.resolve(testFilePath)], {
+					spawnProcess(runtime, [...extraArgs, path.resolve(testFilePath)], {
 						onClose: (code) => {
 							resolve(code)
 						},

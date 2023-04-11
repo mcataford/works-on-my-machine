@@ -8,6 +8,7 @@ export interface Context {
 	runnerRuntime: string
 	collectorRuntime: string
 	nodeRuntime: 'ts-node' | 'node'
+	ts: boolean
 }
 
 export interface Args {
@@ -15,6 +16,7 @@ export interface Args {
 	runtimePath: string
 	help: boolean
 	workers: number
+	ts: boolean
 }
 
 export interface MatcherReport {
