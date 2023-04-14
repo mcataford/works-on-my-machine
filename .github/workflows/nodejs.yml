@@ -21,11 +21,7 @@ jobs:
       with:
         fetch-depth: 0
     - run: git fetch
-    - run: |
-        set -x
-        . ./script/lint-commits
-
-
+    - run: . ./script/lint-commits
 
   dependencies:
     runs-on: ubuntu-latest

@@ -1,5 +1,15 @@
 #!/usr/bin/bash
 
+#
+# This loosely implements the commit message linting check described by
+# Conventional Commit (https://www.conventionalcommits.org). Commits merged in
+# branches on this repository are expected to meet that general format:
+#
+# <prefix>: <message>
+#
+# where <prefix> is one of the prefixes included in the filters below.
+#
+
 CURRENT_HEAD=$(git rev-parse HEAD)
 BASE_HEAD=$(git log origin/main..$CURRENT_HEAD --oneline --format=%H | tail -1)
 COMMITS=$(git log $BASE_HEAD..$CURRENT_HEAD --oneline --format=%s)
