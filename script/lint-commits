@@ -1,6 +1,8 @@
 #!/usr/bin/bash
 
-COMMITS=$(git log origin..HEAD --oneline --format=%s)
+BASE_HEAD=$(git rev-parse origin/HEAD)
+CURRENT_HEAD=$(git rev-parse HEAD)
+COMMITS=$(git log $BASE_HEAD..$CURRENT_HEAD --oneline --format=%s)
 
 if [ -z $COMMITS ]; then
     echo "No commits."
