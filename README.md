@@ -22,6 +22,7 @@ can peek at the opinions baked into this [here](./DESIGN_DECISIONS.md).
 
 ## Development
 
-This uses `corepack`, which comes bundled with `node>=16` to manage which Yarn version to use.
+This uses [Corepack](https://github.com/nodejs/corepack), which comes bundled with `node>=16` to manage which Yarn version to use.
 
-To get started, just `corepack enable` before using `yarn` commands.
+To get started, just `corepack enable` before using `yarn` commands. You can also jump in by running `.
+script/bootstrap`, which will select the right version of Node, enable Corepack and install devDependencies.
