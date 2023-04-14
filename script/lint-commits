@@ -1,0 +1,24 @@
+#!/usr/bin/bash
+
+COMMITS=$(git log origin..HEAD --oneline --format=%s)
+
+if [ -z $COMMITS ]; then
+    echo "No commits."
+    exit 0
+fi
+
+INVALID_COMMITS_FOUND=0
+
+while IFS= read -r line; do
+    SUBJECT_MATCH=$(grep -E "^(feat|chore|fix|refactor|wip|docs|build):" <<< $line)
+    if [ ! -z $SUBJECT_MATCH ]; then
+        echo "VALID - $line"
+    else
+        echo "INVALID - $line"
+        INVALID_COMMITS_FOUND=$INVALID_COMMITS_FOUND+1
+    fi;
+done <<< "$COMMITS"
+
+if [ $INVALID_COMMITS_FOUND > 0 ]; then
+    exit 1
+fi
