@@ -9,13 +9,13 @@ if [[ -z "$COMMITS" ]]; then
     exit 0
 fi
 
-ALLOWED_PREFIXES_PATTERN="^(feat|chore|fix|refactor|wip|docs|build|ci|perf):"
-
 INVALID_COMMITS_FOUND=0
 
-while IFS= read -r line; do
-    SUBJECT_MATCH=$(grep -E "$ALLOWED_PREFIXED_PATTERN" <<< $line)
-    if [[ ! -z $SUBJECT_MATCH ]]; then
+while IFS='\n' read -r line; do
+    echo $line
+    SUBJECT_MATCH=$(grep -E "^(feat|chore|fix|refactor|wip|docs|build|ci|perf):" -o <<< "$line")
+
+    if [[ ! -z "$SUBJECT_MATCH" ]]; then
         echo "VALID - $line"
     else
         echo "INVALID - $line"
