@@ -1,0 +1,8 @@
+#!/usr/bin/bash
+
+DEPENDENCIES=$(cat package.json | jq .devDependencies -cr)
+
+if [[ ! -z $DEPENDENCIES ]]; then
+    echo "This project should have no dependencies."
+    exit 1;
+fi
