@@ -1,8 +1,10 @@
 #!/usr/bin/bash
 
-DEPENDENCIES=$(cat package.json | jq .devDependencies -cr)
+# This check enforces ADR 0001 - the project should not have dependencies.
 
-if [[ ! -z $DEPENDENCIES ]]; then
+DEPENDENCIES=$(cat package.json | jq .dependencies -cr)
+
+if [[ $DEPENDENCIES != "null" ]]; then
     echo "This project should have no dependencies."
     exit 1;
 fi

@@ -6,6 +6,13 @@ on:
     branches: [main]
 
 jobs:
+  adr-0001-depcheck:
+    name: No-dependencies check
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - run: . ./script/check-deps
+
   dependencies:
     runs-on: ubuntu-latest
 
