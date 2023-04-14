@@ -12,10 +12,7 @@ fi
 INVALID_COMMITS_FOUND=0
 
 while IFS='\n' read -r line; do
-    echo $line
-    SUBJECT_MATCH=$(grep -E "^(feat|chore|fix|refactor|wip|docs|build|ci|perf):" -o <<< "$line")
-
-    if [[ ! -z "$SUBJECT_MATCH" ]]; then
+    if [[ ($line =~ ^(feat|chore|fix|refactor|wip|docs|build|ci|perf):) ]]; then
         echo "VALID - $line"
     else
         echo "INVALID - $line"
