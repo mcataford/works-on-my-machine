@@ -1,10 +1,10 @@
 #!/usr/bin/bash
 
 CURRENT_HEAD=$(git rev-parse HEAD)
-BASE_HEAD=$(git log main..$CURRENT_HEAD --oneline --format=%H | tail -1)
+BASE_HEAD=$(git log origin/main..$CURRENT_HEAD --oneline --format=%H | tail -1)
 COMMITS=$(git log $BASE_HEAD..$CURRENT_HEAD --oneline --format=%s)
 
-if [ -z $COMMITS ]; then
+if [[ -z "$COMMITS" ]]; then
     echo "No commits."
     exit 0
 fi
@@ -15,15 +15,15 @@ INVALID_COMMITS_FOUND=0
 
 while IFS= read -r line; do
     SUBJECT_MATCH=$(grep -E "$ALLOWED_PREFIXED_PATTERN" <<< $line)
-    if [ ! -z $SUBJECT_MATCH ]; then
+    if [[ ! -z $SUBJECT_MATCH ]]; then
         echo "VALID - $line"
     else
         echo "INVALID - $line"
-        INVALID_COMMITS_FOUND=$INVALID_COMMITS_FOUND+1
+        INVALID_COMMITS_FOUND=$((INVALID_COMMITS_FOUND+1))
     fi;
 done <<< "$COMMITS"
 
-if [ $INVALID_COMMITS_FOUND -gt 0 ]; then
+if [[ $INVALID_COMMITS_FOUND -gt 0 ]]; then
     echo "$INVALID_COMMITS_FOUND bad commit messages found."
     exit 1
 fi
