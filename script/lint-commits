@@ -7,10 +7,12 @@ if [ -z $COMMITS ]; then
     exit 0
 fi
 
+ALLOWED_PREFIXES_PATTERN="^(feat|chore|fix|refactor|wip|docs|build|ci|perf):"
+
 INVALID_COMMITS_FOUND=0
 
 while IFS= read -r line; do
-    SUBJECT_MATCH=$(grep -E "^(feat|chore|fix|refactor|wip|docs|build):" <<< $line)
+    SUBJECT_MATCH=$(grep -E "$ALLOWED_PREFIXED_PATTERN" <<< $line)
     if [ ! -z $SUBJECT_MATCH ]; then
         echo "VALID - $line"
     else
@@ -19,6 +21,7 @@ while IFS= read -r line; do
     fi;
 done <<< "$COMMITS"
 
-if [ $INVALID_COMMITS_FOUND > 0 ]; then
+if [ $INVALID_COMMITS_FOUND -gt 0 ]; then
+    echo "$INVALID_COMMITS_FOUND bad commit messages found."
     exit 1
 fi
