@@ -1,8 +1,7 @@
 #!/usr/bin/bash
 
-CURRENT_BRANCH=$(git branch --show-current)
-BASE_HEAD=$(git log main..$CURRENT_BRANCH --oneline --format=%H | tail -1)
 CURRENT_HEAD=$(git rev-parse HEAD)
+BASE_HEAD=$(git log main..$CURRENT_HEAD --oneline --format=%H | tail -1)
 COMMITS=$(git log $BASE_HEAD..$CURRENT_HEAD --oneline --format=%s)
 
 if [ -z $COMMITS ]; then
