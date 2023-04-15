@@ -24,7 +24,7 @@ INVALID_COMMITS_FOUND=0
 while IFS='\n' read -r line; do
     if [[ $line =~ ^"Merge "[0-9a-z]+" into "[0-9a-z]+$ ]]; then
         continue
-    elif [[ ($line =~ ^(feat|chore|fix|refactor|wip|docs|build|ci|perf):) ]]; then
+    elif [[ ($line =~ ^(test|feat|chore|fix|refactor|wip|docs|build|ci|perf):) ]]; then
         echo "VALID - $line"
     else
         echo "INVALID - $line"
