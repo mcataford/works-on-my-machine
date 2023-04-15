@@ -1,0 +1,7 @@
+#!/usr/bin/bash
+
+yarn pack --out integration-build.tgz
+
+for filename in $(find ./integration -type f -print); do
+    ts-node $filename;
+done
