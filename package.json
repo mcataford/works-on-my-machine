@@ -17,7 +17,7 @@
     "lint": "rome format src tests && rome check src tests",
     "lint:fix": "rome format src tests --write && rome check src tests --apply",
     "test": "ts-node ./src/cli.ts ./tests",
-    "test:integration": "$SHELL ./script/integration-tests",
+    "test:integration": "/usr/bin/bash ./script/integration-tests",
     "build": "tsc --project ."
   },
   "devDependencies": {
