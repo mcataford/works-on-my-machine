@@ -1,5 +1,3 @@
-#!/usr/bin/env ts-node
-
 import { type Context } from './types'
 import { getContext, spawnProcess } from './utils'
 

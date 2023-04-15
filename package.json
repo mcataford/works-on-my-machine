@@ -16,9 +16,10 @@
     "prebuild": "rm -rf dist",
     "lint": "rome format src tests && rome check src tests",
     "lint:fix": "rome format src tests --write && rome check src tests --apply",
-    "test": "ts-node ./src/cli.ts ./tests",
-    "test:integration": "/usr/bin/bash ./script/integration-tests",
-    "build": "tsc --project ."
+    "test": "$SHELL ./script/test-suite",
+    "test:integration": "$SHELL ./script/integration-tests",
+    "build:ts": "tsc --project .",
+    "build": "$SHELL ./script/build"
   },
   "devDependencies": {
     "@types/node": "^18.15.10",

@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import helpText from './help'
 import parseArgs from './argumentParser'
 import { getContext, redText, assertTsNodeInstall } from './utils'

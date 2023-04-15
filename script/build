@@ -1,0 +1,18 @@
+#!/usr/bin/bash
+
+yarn build:ts
+
+# Certain files need hashbangs as they are executables.
+
+NODE_HASHBANG="#!/usr/bin/env node"
+
+addHashbang() {
+    echo $1
+    echo $NODE_HASHBANG > $1_prefixed
+    cat $1 >> $1_prefixed
+    mv $1_prefixed $1
+}
+
+addHashbang dist/cli.js
+addHashbang dist/collector.js
+addHashbang dist/worker.js

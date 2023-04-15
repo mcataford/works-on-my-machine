@@ -44,11 +44,13 @@ jobs:
         key: ${{ runner.os }}-build-${{env.cache-name}}-${{ hashFiles('**/yarn.lock') }}-node-${{ matrix.node-version }}
     - if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
       run: corepack enable && yarn
+
   integration:
     runs-on: ubuntu-latest
     needs: dependencies
     name: Integration tests
-    
+    env:
+      SHELL: /usr/bin/bash
     strategy:
       matrix:
         node-version: [16, 18]
@@ -95,6 +97,8 @@ jobs:
       matrix:
         node-version: [16, 18]
 
+    env:
+      SHELL: /usr/bin/bash
     steps:
     - uses: actions/checkout@v3
     - name: Use Node.js ${{ matrix.node-version }}
@@ -115,6 +119,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     needs: dependencies
+    env:
+      SHELL: /usr/bin/bash
     strategy:
       matrix:
         node-version: [16, 18]
