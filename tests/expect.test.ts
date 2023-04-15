@@ -57,3 +57,51 @@ test('Identity negation', () => {
 test('Identity negation (fail)', () => {
 	assert.throws(() => expect('yes').not.toBe('yes'))
 })
+
+describe('toHaveLength', () => {
+	test.each([
+		'word',
+		[1, 2, 3, 4],
+		new Set([1, 2, 3, 4]),
+		new Map([
+			[1, 1],
+			[2, 2],
+			[3, 3],
+			[4, 4],
+		]),
+	])('Asserts length correctly (value=%s)', (value: unknown) => {
+		assert.doesNotThrow(() => expect(value).toHaveLength(4))
+	})
+
+	test.each([
+		'word',
+		[1, 2, 3, 4],
+		new Set([1, 2, 3, 4]),
+		new Map([
+			[1, 1],
+			[2, 2],
+			[3, 3],
+			[4, 4],
+		]),
+	])('Asserts length mismatch correctly when negated (value=%s)', (value: unknown) => {
+		assert.doesNotThrow(() => expect(value).not.toHaveLength(5))
+	})
+
+	test('Fails if the value has no length or size', () => {
+		assert.throws(
+			() => {
+				expect(123).toHaveLength(1)
+			},
+			{ name: 'AssertionError', message: '123 does not have a known length.' },
+		)
+	})
+
+	test('Fails if the provided value is not accurate', () => {
+		assert.throws(
+			() => {
+				expect('word').toHaveLength(1)
+			},
+			{ name: 'AssertionError', message: 'word has length 4, not 1.' },
+		)
+	})
+})

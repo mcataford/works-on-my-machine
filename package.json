@@ -16,6 +16,7 @@
     "prebuild": "rm -rf dist",
     "lint": "rome format src tests && rome check src tests",
     "lint:fix": "rome format src tests --write && rome check src tests --apply",
+    "types:check": "yarn tsc --project . --noEmit",
     "test": "$SHELL ./script/test-suite",
     "test:integration": "$SHELL ./script/integration-tests",
     "build:ts": "tsc --project .",
