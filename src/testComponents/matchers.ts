@@ -6,7 +6,7 @@
  */
 import assert from 'assert'
 
-import { type MatcherReport } from '../types'
+import { type MatcherReport, type WithLength } from '../types'
 
 /*
  * Asserts whether value and other are strictly equal.
@@ -97,19 +97,15 @@ function toNotThrow(func: () => unknown, negated: boolean = false): MatcherRepor
 	return out
 }
 
-interface Lengthy {
-	length?: number | (() => number)
-	size?: number | (() => number)
-}
-
 /*
  * Validates that the `value` has a length of `length`. The value provided to `value` should
  * have a defined length (i.e. it can be a string or some sort of iterable).
  */
-function toHaveLength(value: unknown, length: number, negated: boolean = false): MatcherReport {
+function toHaveLength(value: unknown, length: unknown, negated: boolean = false): MatcherReport {
 	let valueLength = 0
 
-	const typedValue = value as Lengthy
+    const typedLength = length as number
+	const typedValue = value as WithLength
 
 	if (typeof typedValue === 'string' || typeof typedValue.length === 'number') valueLength = typedValue.length as number
 	else if (typeof typedValue.length === 'function') valueLength = typedValue.length()
@@ -117,18 +113,18 @@ function toHaveLength(value: unknown, length: number, negated: boolean = false):
 	else if (typeof typedValue.size === 'function') valueLength = typedValue.size()
 	else assert.fail(`${value} does not have a known length.`)
 
-	const pass = (valueLength === length && !negated) || (valueLength !== length && negated)
+	const pass = (valueLength === typedLength && !negated) || (valueLength !== typedLength && negated)
 
 	if (!negated) {
 		return {
 			pass,
-			message: pass ? '' : `${value} has length ${valueLength}, not ${length}.`,
+			message: pass ? '' : `${value} has length ${valueLength}, not ${typedLength}.`,
 		}
 	}
 
 	return {
 		pass,
-		message: pass ? '' : `${value} has length ${length}.`,
+		message: pass ? '' : `${value} has length ${typedLength}.`,
 	}
 }
 

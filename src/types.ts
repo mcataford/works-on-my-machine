@@ -61,3 +61,8 @@ export interface WorkerReport {
 export interface CollectorReport {
 	totalCases: number
 }
+
+export interface WithLength {
+	length?: number | (() => number)
+	size?: number | (() => number)
+}
