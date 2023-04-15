@@ -57,3 +57,9 @@ test('Identity negation', () => {
 test('Identity negation (fail)', () => {
 	assert.throws(() => expect('yes').not.toBe('yes'))
 })
+
+describe('toHaveLength', () => {
+    test.each(['test', [1,2,3,4]])('Asserts length correctly (value=%s)', (value: unknown) => {
+        assert.doesNotThrow(() => expect(value).toHaveLength(4))
+    })
+})
