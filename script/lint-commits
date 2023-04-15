@@ -11,8 +11,7 @@
 #
 
 CURRENT_HEAD=$(git rev-parse HEAD)
-BASE_HEAD=$(git log origin/main..$CURRENT_HEAD --oneline --format=%H | tail -1)
-COMMITS=$(git log $BASE_HEAD..$CURRENT_HEAD --oneline --format=%s)
+COMMITS=$(git log origin/main..$CURRENT_HEAD --oneline --format=%s)
 
 if [[ -z "$COMMITS" ]]; then
     echo "No commits."
@@ -24,7 +23,7 @@ INVALID_COMMITS_FOUND=0
 while IFS='\n' read -r line; do
     if [[ $line =~ ^"Merge "[0-9a-z]+" into "[0-9a-z]+$ ]]; then
         continue
-    elif [[ ($line =~ ^(feat|chore|fix|refactor|wip|docs|build|ci|perf):) ]]; then
+    elif [[ ($line =~ ^(test|feat|chore|fix|refactor|wip|docs|build|ci|perf):) ]]; then
         echo "VALID - $line"
     else
         echo "INVALID - $line"

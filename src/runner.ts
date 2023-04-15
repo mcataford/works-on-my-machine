@@ -130,17 +130,13 @@ async function run(args: Args, context: Context) {
 	performance.mark('test-collect:end')
 	const testCollectTime = performance.measure('test-collect', 'test-collect:start', 'test-collect:end').duration
 
-	console.log(
-		`Collected ${boldText(supportedTests.length)} test files in ${boldText((testCollectTime / 1000).toFixed(3))}s`,
-	)
+	console.log(`Collected ${supportedTests.length} test files in ${boldText((testCollectTime / 1000).toFixed(3))}s`)
 
 	performance.mark('case-collect:start')
 	const collectedCaseCount = await collectCases(context, supportedTests)
 	performance.mark('case-collect:end')
 	const caseCollectTime = performance.measure('case-collect', 'case-collect:start', 'case-collect:end').duration
-	console.log(
-		`Collected ${boldText(collectedCaseCount)} test cases in ${boldText((caseCollectTime / 1000).toFixed(3))}s`,
-	)
+	console.log(`Collected ${collectedCaseCount} test cases in ${boldText((caseCollectTime / 1000).toFixed(3))}s`)
 	const summary = await assignTestsToWorkers(context, supportedTests, args.workers)
 
 	const hasFailed = Object.values(summary).filter((workerReport) => !workerReport.pass).length > 0
