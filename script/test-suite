@@ -1,0 +1,16 @@
+#!/usr/bin/bash
+
+yarn pack --out integration-build.tgz
+
+mkdir .tests
+
+echo "{}" > .tests/package.json
+touch .tests/yarn.lock
+
+(
+    cd .tests
+    yarn add ../integration-build.tgz ts-node
+    yarn womm ../tests --ts --workers=2
+)
+
+rm -rf .tests

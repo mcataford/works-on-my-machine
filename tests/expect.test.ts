@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { describe, test, expect } from '../src'
+import { describe, test, expect } from 'works-on-my-machine'
 
 describe('Equality', () => {
 	test.each([1, 'expectations', true])('Equality (value=%s)', (value: unknown) => {

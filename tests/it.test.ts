@@ -1,6 +1,6 @@
 import assert from 'assert'
 
-import { it, test, expect, describe } from '../src'
+import { it, test, expect, describe } from 'works-on-my-machine'
 
 describe.each([it, test])('Runs tests', (fn: unknown) => {
 	const testFn = fn as typeof test
