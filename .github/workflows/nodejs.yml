@@ -45,6 +45,26 @@ jobs:
     - if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
       run: corepack enable && yarn
 
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    needs: dependencies
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 18
+    - uses: actions/cache@v3
+      id: dependencies-cache
+      env:
+        cache-name: dependencies-cache
+      with:
+        path: .yarn
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}-node-18
+    - run: |
+        corepack enable && yarn
+        yarn types:check
+
   integration:
     runs-on: ubuntu-latest
     needs: dependencies
