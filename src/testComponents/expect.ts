@@ -63,7 +63,7 @@ class Expect<ValueType> {
 				const out = (matcher as RawNoArgMatcher)(this.value, negated)
 
 				if (!out.pass) {
-					throw new TestAssertionFailed(out.message)
+					assert.fail(out.message)
 				}
 			}) as NoArgMatcher
 		} else if (matcher.length === 2) {
@@ -71,7 +71,7 @@ class Expect<ValueType> {
 				const out = (matcher as RawComparisonMatcher)(this.value, other, negated)
 
 				if (!out.pass) {
-					throw new TestAssertionFailed(out.message)
+					assert.fail(out.message)
 				}
 			}) as ComparisonMatcher
 		}
