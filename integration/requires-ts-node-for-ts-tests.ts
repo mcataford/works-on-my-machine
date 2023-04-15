@@ -14,7 +14,7 @@ async function setUp() {
     await fs.mkdir(TEST_DIRECTORY)
     await fs.writeFile(`${TEST_DIRECTORY}/package.json`, JSON.stringify({}))
     await exec('touch yarn.lock', execOptions)
-    await exec('yarn add ../integration-build.tgz', execOptions)
+    await exec('yarn add ../package.tgz', execOptions)
 }
 
 async function tearDown() {
