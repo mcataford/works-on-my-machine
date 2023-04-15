@@ -1,5 +1,12 @@
 #!/usr/bin/bash
 
+#
+# Tests are executed using a built version of the runner.
+#
+# This will first build the package, install it in a temporary
+# environment and run the test suite with it.
+#
+
 yarn pack --out integration-build.tgz
 
 mkdir .tests

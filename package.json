@@ -18,7 +18,8 @@
     "lint:fix": "rome format src tests --write && rome check src tests --apply",
     "test": "$SHELL ./script/test-suite",
     "test:integration": "$SHELL ./script/integration-tests",
-    "build": "tsc --project ."
+    "build:ts": "tsc --project .",
+    "build": "$SHELL ./script/build"
   },
   "devDependencies": {
     "@types/node": "^18.15.10",
