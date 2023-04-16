@@ -1,5 +1,11 @@
 import { redText, greenText, yellowText } from './utils'
 
+/*
+ * Standard logger for anything that needs to print messages to the user.
+ *
+ * This supports the same general functionality as the `Console` logger,
+ * including `group` and various levels of logging.
+ */
 class Logger {
 	indent: number = 0
 
@@ -32,9 +38,9 @@ class Logger {
 		process.stdout.write(this.#formatMessage(`${this.#indentPrefix}${text}\n`))
 	}
 
-    logRaw(text: string) {
-        process.stdout.write(`${text}\n`)
-    }
+	logRaw(text: string) {
+		process.stdout.write(`${text}\n`)
+	}
 }
 
 export default () => new Logger()

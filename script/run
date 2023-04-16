@@ -1,0 +1,18 @@
+#!/usr/bin/bash
+
+rm -rf integration-build.tgz dist
+yarn pack --out integration-build.tgz
+
+mkdir .tmp
+
+echo "{}" > .tmp/package.json
+touch .tmp/yarn.lock
+
+(
+    cd .tmp
+    yarn cache clean
+    yarn add ../integration-build.tgz ts-node
+    yarn womm "$@"
+)
+
+rm -rf .tmp

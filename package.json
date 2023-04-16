@@ -14,6 +14,7 @@
   "scripts": {
     "prepack": "yarn build",
     "prebuild": "rm -rf dist",
+    "cli": "$SHELL ./script/run",
     "lint": "rome format src tests && rome check src tests",
     "lint:fix": "rome format src tests --write && rome check src tests --apply",
     "types:check": "yarn tsc --project . --noEmit",
