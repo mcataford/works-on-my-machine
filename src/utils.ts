@@ -54,7 +54,6 @@ export function getContext(runnerPath: string, ts: boolean = false): Context {
 	return {
 		workerRuntime: path.join(installDirectory, `worker${runnerExtension}`),
 		runnerRuntime: runnerPath,
-		collectorRuntime: path.join(installDirectory, `collector${runnerExtension}`),
 		nodeRuntime,
 		ts,
 	}

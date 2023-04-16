@@ -6,7 +6,6 @@ export type TestCaseGroup = (...args: Array<unknown>) => void
 export interface Context {
 	workerRuntime: string
 	runnerRuntime: string
-	collectorRuntime: string
 	nodeRuntime: 'ts-node' | 'node'
 	ts: boolean
 }
@@ -56,10 +55,6 @@ export interface WorkerReport {
 	pass: boolean
 	returnCode: number | null
 	runtime: number | null
-}
-
-export interface CollectorReport {
-	totalCases: number
 }
 
 export interface WithLength {

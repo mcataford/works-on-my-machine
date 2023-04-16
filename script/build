@@ -14,5 +14,4 @@ addHashbang() {
 }
 
 addHashbang dist/cli.js
-addHashbang dist/collector.js
 addHashbang dist/worker.js

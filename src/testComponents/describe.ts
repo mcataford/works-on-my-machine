@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs'
+import { performance } from 'perf_hooks'
 
-import { greenText, redText } from '../utils'
+import { getTestContext, setContext } from '../testContext'
 import { type TestCaseLabel, type TestCaseFunction, type TestCaseGroup } from '../types'
 
 /*
@@ -15,13 +16,19 @@ import { type TestCaseLabel, type TestCaseFunction, type TestCaseGroup } from '.
  * ```
  */
 function describe(label: TestCaseLabel, testGroup: TestCaseGroup) {
-	if (process.env.COLLECT) {
-		testGroup()
-		return
-	}
+	const parentContext = getTestContext()
+	const currentContext = parentContext.addChildContext(label)
 
-	console.log(greenText(label))
+	setContext(currentContext)
+
 	testGroup()
+
+	setContext(parentContext)
+
+	if (parentContext.isRootContext) {
+		parentContext.runTests()
+		setContext(null)
+	}
 }
 
 Object.defineProperty(describe, 'each', {
