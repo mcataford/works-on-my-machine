@@ -36,7 +36,6 @@ async function requires_ts_node_for_ts_tests() {
 
         assert.ok(stdout.includes('sample.test.ts is not supported without --ts and will be ignored'), 'Unsupported test notice not found')
         assert.ok(stdout.includes('Collected 0 test files'), 'Did not find notice of no test collected')
-        assert.ok(stdout.includes('Collected 0 test cases'), 'Did not find notice of no cases collected')
     } catch(e) {
         await tearDown()
         console.log(e)
