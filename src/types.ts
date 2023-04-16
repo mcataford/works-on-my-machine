@@ -66,3 +66,11 @@ export interface WithLength {
 	length?: number | (() => number)
 	size?: number | (() => number)
 }
+
+export interface TestContext {
+	children: Array<TestContext>
+	tests: Map<TestCaseLabel, TestCaseFunction>
+	beforeEach?: () => {}
+	afterEach?: () => {}
+	parentContext?: TestContext | null
+}

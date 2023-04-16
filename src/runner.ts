@@ -35,34 +35,6 @@ async function collectTests(roots: Array<string>): Promise<Array<string>> {
 	return collectedHere
 }
 
-async function collectCases(context: Context, collectedPaths: Array<string>, workerCount: number = 1): Promise<number> {
-	const batchedCollectedPaths = splitIntoBatches(collectedPaths, workerCount)
-
-	const batchResults = await Promise.all(
-		batchedCollectedPaths.map(
-			(batch): Promise<CollectorReport> =>
-				new Promise((resolve, reject) => {
-					const collectorReport: CollectorReport = { totalCases: 0 }
-					forkWorker(context.collectorRuntime, batch, {
-						onClose: (code) => {
-							resolve(collectorReport)
-						},
-						onMessage: (message: string) => {
-							collectorReport.totalCases += JSON.parse(message).total
-						},
-						extraEnv: { TS: context.nodeRuntime === 'ts-node' ? '1' : '0' },
-					})
-				}),
-		),
-	)
-
-	const collectedCount = batchResults.reduce((total, batchResult) => {
-		return total + batchResult.totalCases
-	}, 0)
-
-	return collectedCount
-}
-
 /*
  * Splits the list of collected test files into `workerCount` batches and starts
  * worker processes.
@@ -132,11 +104,6 @@ async function run(args: Args, context: Context) {
 
 	console.log(`Collected ${supportedTests.length} test files in ${boldText((testCollectTime / 1000).toFixed(3))}s`)
 
-	performance.mark('case-collect:start')
-	const collectedCaseCount = await collectCases(context, supportedTests)
-	performance.mark('case-collect:end')
-	const caseCollectTime = performance.measure('case-collect', 'case-collect:start', 'case-collect:end').duration
-	console.log(`Collected ${collectedCaseCount} test cases in ${boldText((caseCollectTime / 1000).toFixed(3))}s`)
 	const summary = await assignTestsToWorkers(context, supportedTests, args.workers)
 
 	const hasFailed = Object.values(summary).filter((workerReport) => !workerReport.pass).length > 0

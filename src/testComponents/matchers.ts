@@ -104,7 +104,7 @@ function toNotThrow(func: () => unknown, negated: boolean = false): MatcherRepor
 function toHaveLength(value: unknown, length: unknown, negated: boolean = false): MatcherReport {
 	let valueLength = 0
 
-    const typedLength = length as number
+	const typedLength = length as number
 	const typedValue = value as WithLength
 
 	if (typeof typedValue === 'string' || typeof typedValue.length === 'number') valueLength = typedValue.length as number

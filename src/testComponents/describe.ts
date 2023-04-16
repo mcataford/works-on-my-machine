@@ -1,7 +1,9 @@
 import { promises as fs } from 'fs'
+import { performance } from 'perf_hooks'
 
+import { getTestContext, setContext, TestContextExperimental } from '../testContext'
 import { greenText, redText } from '../utils'
-import { type TestCaseLabel, type TestCaseFunction, type TestCaseGroup } from '../types'
+import { type TestContext, type TestCaseLabel, type TestCaseFunction, type TestCaseGroup } from '../types'
 
 /*
  * `describe` facilitates grouping tests together.
@@ -20,8 +22,25 @@ function describe(label: TestCaseLabel, testGroup: TestCaseGroup) {
 		return
 	}
 
+	const context = getTestContext()
+
+	const newContext = new TestContextExperimental(context)
+
+	context.children.push(newContext)
+
+	setContext(newContext)
+
 	console.log(greenText(label))
 	testGroup()
+
+	setContext(context)
+
+	if (context.parentContext === null) {
+		context.runTests()
+	}
+
+	context.children = []
+	context.tests.clear()
 }
 
 Object.defineProperty(describe, 'each', {
