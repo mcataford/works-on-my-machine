@@ -1,6 +1,6 @@
 import { type TestCaseLabel, type TestCaseFunction } from '../types'
 
-import { getTestContext } from '../testContext'
+import { getTestContext, setContext } from '../testContext'
 
 /*
  * `test` defines a single test case.
@@ -12,12 +12,13 @@ import { getTestContext } from '../testContext'
  * ```
  */
 function test(label: TestCaseLabel, testCase: TestCaseFunction): void {
-	if (process.env.COLLECT) {
-		console.log(label)
-		return
-	}
+	const context = getTestContext()
 
-	getTestContext().tests.set(label, testCase)
+	context.addTest(label, testCase)
+	if (context.isRootContext) {
+		context.runTests()
+		setContext(null)
+	}
 }
 
 Object.defineProperty(test, 'each', {

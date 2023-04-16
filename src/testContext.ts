@@ -2,7 +2,7 @@ import { performance } from 'perf_hooks'
 import { redText, greenText } from './utils'
 import { type TestContext, type TestCaseLabel, type TestCaseFunction } from './types'
 
-let _testContext: TestContextExperimental | undefined
+let _testContext: TestContextExperimental | undefined | null
 
 export function getTestContext(): TestContextExperimental {
 	if (!_testContext) _testContext = new TestContextExperimental()
@@ -10,25 +10,29 @@ export function getTestContext(): TestContextExperimental {
 	return _testContext
 }
 
-export function setContext(context: TestContextExperimental) {
+export function setContext(context: TestContextExperimental | null) {
 	_testContext = context
 }
 
 export class TestContextExperimental {
-	children: Array<TestContextExperimental>
+	children: Map<string, TestContextExperimental>
 	tests: Map<TestCaseLabel, TestCaseFunction>
-	beforeEach?: () => {}
-	afterEach?: () => {}
 	parentContext?: TestContextExperimental | null
 
 	constructor(parentContext: TestContextExperimental | null = null) {
 		this.tests = new Map()
-		this.children = []
+		this.children = new Map()
 		this.parentContext = parentContext
 	}
 
 	addTest(testLabel: TestCaseLabel, testFunction: TestCaseFunction) {
 		this.tests.set(testLabel, testFunction)
+	}
+
+	addChildContext(label: string): TestContextExperimental {
+		const childContext = new TestContextExperimental(this)
+		this.children.set(label, childContext)
+		return childContext
 	}
 
 	runTest(label: TestCaseLabel, test: TestCaseFunction) {
@@ -55,7 +59,14 @@ export class TestContextExperimental {
 		}
 
 		for (const child of this.children) {
-			child.runTests()
+			const [label, childContext] = child
+			console.group(greenText(label))
+			childContext.runTests()
+			console.groupEnd()
 		}
+	}
+
+	get isRootContext() {
+		return this.parentContext === null
 	}
 }

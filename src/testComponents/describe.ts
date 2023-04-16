@@ -17,30 +17,20 @@ import { type TestContext, type TestCaseLabel, type TestCaseFunction, type TestC
  * ```
  */
 function describe(label: TestCaseLabel, testGroup: TestCaseGroup) {
-	if (process.env.COLLECT) {
-		testGroup()
-		return
-	}
+	const parentContext = getTestContext()
+	const currentContext = parentContext.addChildContext(label)
 
-	const context = getTestContext()
+	setContext(currentContext)
 
-	const newContext = new TestContextExperimental(context)
-
-	context.children.push(newContext)
-
-	setContext(newContext)
-
-	console.log(greenText(label))
+	//console.log(greenText(label))
 	testGroup()
 
-	setContext(context)
+	setContext(parentContext)
 
-	if (context.parentContext === null) {
-		context.runTests()
+	if (parentContext.isRootContext) {
+		parentContext.runTests()
+		setContext(null)
 	}
-
-	context.children = []
-	context.tests.clear()
 }
 
 Object.defineProperty(describe, 'each', {
