@@ -21,6 +21,8 @@ export function setContext(context: TestContext | null) {
 export class TestContext {
 	children: Map<string, TestContext>
 	tests: Map<TestCaseLabel, TestCaseFunction>
+	beforeEach?: () => void
+	afterEach?: () => void
 	parentContext?: TestContext | null
 
 	constructor(parentContext: TestContext | null = null) {
@@ -39,11 +41,38 @@ export class TestContext {
 		return childContext
 	}
 
+	addBeforeEach(func: () => void) {
+		if (this.beforeEach) throw new Error('beforeEach is already defined on context.')
+		this.beforeEach = func
+	}
+
+	addAfterEach(func: () => void) {
+		if (this.afterEach) throw new Error('afterEach is already defined on context.')
+		this.afterEach = func
+	}
+
+	get allBeforeEach(): Array<() => void> {
+		if (!this.beforeEach) return this.parentContext?.allBeforeEach ?? [() => {}]
+
+		const parentBeforeEach = !this.parentContext ? [] : this.parentContext.allBeforeEach
+
+		return [...parentBeforeEach, this.beforeEach]
+	}
+
+	get allAfterEach(): Array<() => void> {
+		if (!this.afterEach) return this.parentContext?.allAfterEach ?? [() => {}]
+
+		const parentAfterEach = !this.parentContext ? [] : this.parentContext.allAfterEach
+
+		return [...parentAfterEach, this.afterEach]
+	}
 	runTest(label: TestCaseLabel, test: TestCaseFunction) {
 		performance.mark(`test-${label}:start`)
 		let hasFailed = false
 		try {
+			this.allBeforeEach.forEach((func) => func())
 			test()
+			this.allAfterEach.forEach((func) => func())
 		} catch (e) {
 			hasFailed = true
 			logger.logError(String(e))
