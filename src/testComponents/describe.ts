@@ -22,7 +22,6 @@ function describe(label: TestCaseLabel, testGroup: TestCaseGroup) {
 
 	setContext(currentContext)
 
-	//console.log(greenText(label))
 	testGroup()
 
 	setContext(parentContext)
