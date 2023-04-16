@@ -2,6 +2,10 @@ import { performance } from 'perf_hooks'
 import { redText, greenText } from './utils'
 import { type TestCaseLabel, type TestCaseFunction } from './types'
 
+import createLogger from './logging'
+
+const logger = createLogger()
+
 let _testContext: TestContext | undefined | null
 
 export function getTestContext(): TestContext {
@@ -42,14 +46,14 @@ export class TestContext {
 			test()
 		} catch (e) {
 			hasFailed = true
-			console.log(redText(String(e)))
+			logger.logError(String(e))
 		}
 
 		performance.mark(`test-${label}:end`)
 		const testDuration = performance.measure(`test-${label}`, `test-${label}:start`, `test-${label}:end`).duration
 
-		if (hasFailed) console.log(redText(`❌ [FAILED] ${label} (${(testDuration / 1000).toFixed(3)}s)`))
-		else console.log(greenText(`✅ [PASS] ${label} (${(testDuration / 1000).toFixed(3)}s)`))
+		if (hasFailed) logger.logError(redText(`❌ [FAILED] ${label} (${(testDuration / 1000).toFixed(3)}s)`))
+		else logger.log(greenText(`✅ [PASS] ${label} (${(testDuration / 1000).toFixed(3)}s)`))
 	}
 
 	runTests() {
@@ -60,9 +64,9 @@ export class TestContext {
 
 		for (const child of this.children) {
 			const [label, childContext] = child
-			console.group(greenText(label))
+			logger.group(greenText(label))
 			childContext.runTests()
-			console.groupEnd()
+			logger.groupEnd()
 		}
 	}
 
