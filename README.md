@@ -20,6 +20,10 @@ constraints:
 `womm` is an opinionated implementation of Typescript/Javascript testing libraries we've all come to get used to. You
 can peek at the opinions baked into this [here](./DESIGN_DECISIONS.md).
 
+## Documentation
+
+Documentation can be found [here](./docs/INDEX.md) and welcomes contributions!
+
 ## Development
 
 This uses [Corepack](https://github.com/nodejs/corepack), which comes bundled with `node>=16` to manage which Yarn version to use.
