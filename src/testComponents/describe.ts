@@ -1,9 +1,8 @@
 import { promises as fs } from 'fs'
 import { performance } from 'perf_hooks'
 
-import { getTestContext, setContext, TestContextExperimental } from '../testContext'
-import { greenText, redText } from '../utils'
-import { type TestContext, type TestCaseLabel, type TestCaseFunction, type TestCaseGroup } from '../types'
+import { getTestContext, setContext } from '../testContext'
+import { type TestCaseLabel, type TestCaseFunction, type TestCaseGroup } from '../types'
 
 /*
  * `describe` facilitates grouping tests together.

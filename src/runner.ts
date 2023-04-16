@@ -1,5 +1,5 @@
-import { forkWorker, greenText, yellowText, redText, boldText, splitIntoBatches } from './utils'
-import { type Args, type Context, type WorkerReport, type CollectorReport } from './types'
+import { forkWorker, yellowText, boldText, splitIntoBatches } from './utils'
+import { type Args, type Context, type WorkerReport } from './types'
 
 import { promises as fs } from 'fs'
 import path from 'path'

@@ -1,25 +1,25 @@
 import { performance } from 'perf_hooks'
 import { redText, greenText } from './utils'
-import { type TestContext, type TestCaseLabel, type TestCaseFunction } from './types'
+import { type TestCaseLabel, type TestCaseFunction } from './types'
 
-let _testContext: TestContextExperimental | undefined | null
+let _testContext: TestContext | undefined | null
 
-export function getTestContext(): TestContextExperimental {
-	if (!_testContext) _testContext = new TestContextExperimental()
+export function getTestContext(): TestContext {
+	if (!_testContext) _testContext = new TestContext()
 
 	return _testContext
 }
 
-export function setContext(context: TestContextExperimental | null) {
+export function setContext(context: TestContext | null) {
 	_testContext = context
 }
 
-export class TestContextExperimental {
-	children: Map<string, TestContextExperimental>
+export class TestContext {
+	children: Map<string, TestContext>
 	tests: Map<TestCaseLabel, TestCaseFunction>
-	parentContext?: TestContextExperimental | null
+	parentContext?: TestContext | null
 
-	constructor(parentContext: TestContextExperimental | null = null) {
+	constructor(parentContext: TestContext | null = null) {
 		this.tests = new Map()
 		this.children = new Map()
 		this.parentContext = parentContext
@@ -29,8 +29,8 @@ export class TestContextExperimental {
 		this.tests.set(testLabel, testFunction)
 	}
 
-	addChildContext(label: string): TestContextExperimental {
-		const childContext = new TestContextExperimental(this)
+	addChildContext(label: string): TestContext {
+		const childContext = new TestContext(this)
 		this.children.set(label, childContext)
 		return childContext
 	}

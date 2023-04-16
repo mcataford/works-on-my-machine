@@ -6,7 +6,6 @@ export type TestCaseGroup = (...args: Array<unknown>) => void
 export interface Context {
 	workerRuntime: string
 	runnerRuntime: string
-	collectorRuntime: string
 	nodeRuntime: 'ts-node' | 'node'
 	ts: boolean
 }
@@ -58,19 +57,7 @@ export interface WorkerReport {
 	runtime: number | null
 }
 
-export interface CollectorReport {
-	totalCases: number
-}
-
 export interface WithLength {
 	length?: number | (() => number)
 	size?: number | (() => number)
-}
-
-export interface TestContext {
-	children: Array<TestContext>
-	tests: Map<TestCaseLabel, TestCaseFunction>
-	beforeEach?: () => {}
-	afterEach?: () => {}
-	parentContext?: TestContext | null
 }
