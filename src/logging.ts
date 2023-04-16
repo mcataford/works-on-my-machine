@@ -31,6 +31,10 @@ class Logger {
 	log(text: string) {
 		process.stdout.write(this.#formatMessage(`${this.#indentPrefix}${text}\n`))
 	}
+
+    logRaw(text: string) {
+        process.stdout.write(`${text}\n`)
+    }
 }
 
 export default () => new Logger()
