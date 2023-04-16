@@ -3,6 +3,10 @@ import parseArgs from './argumentParser'
 import { getContext, redText, assertTsNodeInstall } from './utils'
 import run from './runner'
 
+import createLogger from './logging'
+
+const logger = createLogger()
+
 /*
  * Logic executed when running the test runner CLI.
  */
@@ -10,7 +14,7 @@ import run from './runner'
 	const args = parseArgs(process.argv)
 
 	if (args.help) {
-		console.log(helpText)
+		logger.logRaw(helpText)
 		return
 	}
 
@@ -21,7 +25,7 @@ import run from './runner'
 	try {
 		run(args, context)
 	} catch (e) {
-		console.log(redText('Test run failed'))
+		logger.logError('Test run failed')
 		throw e
 	}
 })().catch((e) => {

@@ -1,9 +1,11 @@
 import { forkWorker, yellowText, boldText, splitIntoBatches } from './utils'
 import { type Args, type Context, type WorkerReport } from './types'
-
+import createLogger from './logging'
 import { promises as fs } from 'fs'
 import path from 'path'
 import { performance } from 'perf_hooks'
+
+const logger = createLogger()
 
 /*
  * Collects test files recursively starting from the provided root
@@ -73,7 +75,7 @@ async function assignTestsToWorkers(
 							const workerMessage: { results: string; failed: boolean } = JSON.parse(message)
 							if (workerMessage.failed) workerReport.pass = false
 
-							console.log(workerMessage.results)
+							logger.logRaw(workerMessage.results)
 						},
 						extraEnv: { TS: context.nodeRuntime === 'ts-node' ? '1' : '0' },
 					})
@@ -95,21 +97,21 @@ async function run(args: Args, context: Context) {
 	const supportedTests = collectedTests.filter((testPath) => {
 		const supported = (testPath.endsWith('.test.ts') && context.ts) || (!context.ts && !testPath.endsWith('.test.ts'))
 
-		if (!supported) console.log(yellowText(`WARN: ${testPath} is not supported without --ts and will be ignored`))
+		if (!supported) logger.logWarning(`WARN: ${testPath} is not supported without --ts and will be ignored`)
 
 		return supported
 	})
 	performance.mark('test-collect:end')
 	const testCollectTime = performance.measure('test-collect', 'test-collect:start', 'test-collect:end').duration
 
-	console.log(`Collected ${supportedTests.length} test files in ${boldText((testCollectTime / 1000).toFixed(3))}s`)
+	logger.log(`Collected ${supportedTests.length} test files in ${boldText((testCollectTime / 1000).toFixed(3))}s`)
 
 	const summary = await assignTestsToWorkers(context, supportedTests, args.workers)
 
 	const hasFailed = Object.values(summary).filter((workerReport) => !workerReport.pass).length > 0
 	performance.mark('run:end')
 	const overallTime = performance.measure('run', 'run:start', 'run:end').duration
-	console.log(`Ran tests in ${boldText(overallTime / 1000)}s`)
+	logger.log(`Ran tests in ${boldText(overallTime / 1000)}s`)
 
 	if (hasFailed) throw new Error('Test run failed')
 }
