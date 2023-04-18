@@ -22,7 +22,8 @@
     "test": "$SHELL ./script/test-suite",
     "test:integration": "$SHELL ./script/integration-tests",
     "build:ts": "tsc --project .",
-    "build": "$SHELL ./script/build"
+    "build": "$SHELL ./script/build",
+    "docs": "yarn dlx ts-node ./docs/generate.ts ./src"
   },
   "devDependencies": {
     "@types/node": "^18.15.10",
