@@ -6,7 +6,8 @@
   "license": "MIT",
   "packageManager": "yarn@3.5.0",
   "files": [
-    "dist/**/*.js"
+    "dist/**/*.js",
+    "dist/**/*.d.ts"
   ],
   "bin": {
     "womm": "dist/cli.js"
