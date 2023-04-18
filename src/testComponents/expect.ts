@@ -20,7 +20,7 @@ class TestAssertionFailed extends Error {
 	}
 }
 
-class Expect<ValueType> {
+export class Expect<ValueType> {
 	static #rawMatchers: RawMatchersMap = {
 		comparisonMatchers: [],
 		noArgMatchers: [],
