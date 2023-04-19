@@ -24,6 +24,8 @@ can peek at the opinions baked into this [here](./DESIGN_DECISIONS.md).
 
 Documentation can be found [here](./docs/INDEX.md) and welcomes contributions!
 
+API documentation can also be found [here](./docs/API.md).
+
 ## Development
 
 This uses [Corepack](https://github.com/nodejs/corepack), which comes bundled with `node>=16` to manage which Yarn version to use.
