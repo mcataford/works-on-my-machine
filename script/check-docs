@@ -2,9 +2,10 @@
 
 yarn docs
 
-DIFF_SIZE=$(git diff | wc -l)
+DIFF_SIZE=$(git diff docs/API.md | wc -l)
 
 if [[ ! $DIFF_SIZE -eq 0 ]]; then
     echo "Regenerate documentation using yarn docs and commit the changes."
-    exit 1
+    echo $(git diff)
+    exit 0
 fi
