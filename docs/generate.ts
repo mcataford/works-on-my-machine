@@ -5,7 +5,9 @@ import path from 'path'
 
 interface ExtractedNode {
 	name?: string
-	comment: string
+	snippet?: string
+	comment?: string
+	type?: string
 }
 
 interface APIDocumentationNode {
@@ -15,6 +17,12 @@ interface APIDocumentationNode {
 }
 
 const API_DOC_PATH = './docs/API.md'
+
+function formatFunctionDeclaration(node: ts.FunctionDeclaration, fullText: string): string {
+	const declarationStart = node.getStart()
+	const declarationEnd = node.body?.pos ?? declarationStart
+	return fullText.slice(declarationStart, declarationEnd)
+}
 
 /*
  *  Documentation extraction
@@ -38,6 +46,8 @@ async function generateDocumentation() {
 		const extractedNodes: Array<ExtractedNode> = []
 
 		ts.forEachChild(source, (node: ts.Node) => {
+			const extractedNode: ExtractedNode = {}
+
 			const commentRanges = ts.getLeadingCommentRanges(fullText, node.getFullStart())
 			const blockComments = (commentRanges ?? [])
 				.filter((comment) => comment.kind === ts.SyntaxKind.MultiLineCommentTrivia)
@@ -45,13 +55,25 @@ async function generateDocumentation() {
 					return fullText.slice(r.pos, r.end)
 				})
 
+			if (node.kind === ts.SyntaxKind.FunctionDeclaration) {
+				const functionDeclarationNode = node as ts.FunctionDeclaration
+				extractedNode.snippet = formatFunctionDeclaration(functionDeclarationNode, fullText)
+				extractedNode.name = String(functionDeclarationNode?.name?.escapedText ?? 'unknown function')
+				extractedNode.type = 'function'
+			} else if (node.kind === ts.SyntaxKind.ClassDeclaration) {
+				const classDeclarationNode = node as ts.ClassDeclaration
+				extractedNode.name = String(classDeclarationNode?.name?.escapedText ?? 'unknown class')
+                extractedNode.type = 'class'
+			}
+
 			if (blockComments.length === 0) return
 
-			extractedNodes.push({
-				name: (node as ts.ClassDeclaration)?.name?.escapedText ?? undefined,
-				comment: blockComments[0],
-			})
+			extractedNode.comment = blockComments[0]
+
+			extractedNodes.push(extractedNode)
 		})
+
+		if (extractedNodes.length === 0) continue
 
 		const targetPath = `docs/api/${path.basename(sourcePath, '.ts')}.md`
 
@@ -60,13 +82,13 @@ async function generateDocumentation() {
 		content += `## ${sourcePath}\n\n`
 
 		for (const entry of extractedNodes) {
-            if (entry.name)
-			    content += `### \`${entry.name}\`\n\n`
+			content += '---\n'
+			if (entry.name) content += `### ${entry?.type ?? ''} / ${entry.name}\n`
+			if (entry.snippet) content += `\`\`\`ts\n${entry.snippet}\n\`\`\`\n\n`
 
-			const entryDescription = entry.comment
+			const entryDescription = (entry?.comment ?? '')
 				.split('\n')
 				.map((line) => line.replace(/(\/\*)|(\*\/)|(\*)/g, '').trim())
-				.filter((line) => Boolean(line))
 				.join('\n')
 
 			content += `${entryDescription}\n\n`
