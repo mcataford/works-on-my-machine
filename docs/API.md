@@ -44,6 +44,9 @@ Built-in matchers
 All the matchers defined and exported as part of the default export
 of this file are available to each `expect` statement made in tests.
 
+A matcher's inverse is defined by its behaviour when the `negated` flag
+that is passed to it is truthy.
+
 
 ---
 ### function / toEqual
@@ -52,7 +55,19 @@ function toEqual(value: unknown, other: unknown, negated: boolean = false): Matc
 ```
 
 
-Asserts whether value and other are strictly equal.
+`toEqual` asserts whether `value` and `other` are strictly equal.
+
+Once registered, it can be used as
+
+```ts
+expect(value).toEqual(other)
+```
+
+and in negated form
+
+```ts
+expect(value).not.toEqual(other)
+```
 
 
 ---
@@ -62,7 +77,8 @@ function toNotEqual(value: unknown, other: unknown, negated: boolean = false): M
 ```
 
 
-Inverse of toEqual.
+`toNotEqual` is the inverse of `toEqual` and behaves the same way as
+`expect(...).not.toEqual(...)`. Negating it behaves like `toEqual`.
 
 
 ---
@@ -82,7 +98,7 @@ function toNotBe(value: unknown, other: unknown, negated: boolean = false): Matc
 ```
 
 
-Inverse ot toBe.
+Inverse of toBe.
 
 
 ---
