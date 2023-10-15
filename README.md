@@ -1,5 +1,12 @@
 # works-on-my-machine (womm)
 
+## 🗝️ Archival
+
+For the time being, this project is unmaintained and not explicitly looked at. As an experiment, it's not my current
+focus. That being said, feel free to fork and or work from it if you please!
+
+---
+
 > ✨ A full-nonsense pet test runner ✨
 
 ## So, what is this?
